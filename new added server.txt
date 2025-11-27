@@ -1,0 +1,173 @@
+[
+    {
+        "name": "lava-all",
+        "host": "lava-all.ajieblogs.eu.org",
+        "port": 443,
+        "password": "https://dsc.gg/ajidevserver",
+        "secure": true,
+        "region": "🇪🇺 Europe",
+        "version": "v4"
+    },
+    {
+        "name": "lava-v4",
+        "host": "lava-v4.ajieblogs.eu.org",
+        "port": 443,
+        "password": "https://dsc.gg/ajidevserver",
+        "secure": true,
+        "region": "🇪🇺 Europe",
+        "version": "v4"
+    },
+    {
+        "name": "lavalinkv4",
+        "host": "lavalinkv4.serenetia.com",
+        "port": 443,
+        "password": "chttps://dsc.gg/ajidevserver",
+        "secure": true,
+        "region": "🇺🇸 US East",
+        "version": "v4"
+    },
+    {
+        "name": "lavallNonSSL",
+        "host": "lava-all.ajieblogs.eu.org",
+        "port": 80,
+        "password": "https://dsc.gg/ajidevserver",
+        "secure": false,
+        "region": "🇪🇺 Europe",
+        "version": "v4"
+    },
+    {
+        "name": "lavalink.serenetiaNonSSL",
+        "host": "lavalink.serenetia.com",
+        "port": 80,
+        "password": "https://dsc.gg/ajidevserver",
+        "secure": false,
+        "region": "🇺🇸 US East",
+        "version": "v3"
+    },
+    {
+        "name": "dctv (sgp)",
+        "host": "140.245.120.106",
+        "port": 25230,
+        "password": "quangloc2018",
+        "secure": false,
+        "region": "🇸🇬 Singapore",
+        "version": "v4"
+    },
+    {
+        "name": "Lavalink APGB",
+        "host": "airplanegobrr.us.to",
+        "port": 2333,
+        "password": "youshallnotpass",
+        "secure": false,
+        "region": "🇺🇸 US West",
+        "version": "v4"
+    },
+    {
+        "name": "Fedot_Compot-main",
+        "host": "lavalink.fedotcompot.net",
+        "port": 443,
+        "password": "https://discord.gg/bXXCZzKAyp",
+        "secure": true,
+        "region": "🇷🇺 Russia",
+        "version": "v4"
+    },
+    {
+        "name": "CharlesNaig ",
+        "host": "lavahatry4.techbyte.host",
+        "port": 3000,
+        "password": "NAIGLAVA-dash.techbyte.host",
+        "secure": false,
+        "region": "🇺🇸 US Central",
+        "version": "v4"
+    },
+    {
+        "name": "Serenetia-LDP-NonSSL",
+        "host": "lavalink.serenetia.com",
+        "port": 80,
+        "password": "https://dsc.gg/ajidevserver",
+        "secure": false,
+        "region": "🌍 Unknown",
+        "version": "v3"
+    },
+    {
+        "name": "Fedot_Compot-main",
+        "host": "lavalink.fedotcompot.net",
+        "port": 443,
+        "password": "https://discord.gg/bXXCZzKAyp",
+        "secure": true,
+        "region": "🌍 Unknown",
+        "version": "v4"
+    },
+    {
+        "name": "US Node",
+        "host": "lava.naqent.my.id",
+        "port": 25563,
+        "password": "youshallnotpass",
+        "secure": false,
+        "region": "🇮🇩 Indonesia",
+        "version": "v4"
+    },
+    {
+        "name": "RRH",
+        "host": "uk-01.rrhosting.eu",
+        "port": 1337,
+        "password": "RRHosting",
+        "secure": false,
+        "region": "🇪🇺 Europe",
+        "version": "v4"
+    },
+    {
+        "name": "HanahiraLava",
+        "host": "lava.hanahira.dev",
+        "port": 4546,
+        "password": "hinakochan",
+        "secure": false,
+        "region": "🌍 Unknown",
+        "version": "v4"
+    },
+    {
+        "name": "RY4N",
+        "host": "mine.visionhost.cloud",
+        "port": 2002,
+        "password": "youshallnotpass",
+        "secure": false,
+        "region": "🌍 Unknown",
+        "version": "v4"
+    },
+    {
+        "name": "Sakura",
+        "host": "117.18.125.203",
+        "port": 2333,
+        "password": "Rikka",
+        "secure": false,
+        "region": "🌍 Unknown",
+        "version": "v4"
+    },
+    {
+        "name": "dctv 2 (sgp)",
+        "host": "140.245.120.106",
+        "port": 25230,
+        "password": "quangloc2018",
+        "secure": false,
+        "region": "🌍 Unknown",
+        "version": "v4"
+    },
+    {
+        "name": "Southctrl",
+        "host": "audio.chippy.info",
+        "port": 24597,
+        "password": "youshallnotpass",
+        "secure": false,
+        "region": "🌍 Unknown",
+        "version": "v4"
+    },
+    {
+        "name": "lavahatry4",
+        "host": "lavahatry4.techbyte.host",
+        "port": 3000,
+        "password": "NAIGLAVA-dash.techbyte.host",
+        "secure": false,
+        "region": "🌍 Unknown",
+        "version": "v4"
+    }
+]

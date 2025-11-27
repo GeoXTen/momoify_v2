@@ -1,0 +1,28 @@
+--- src/index.js.orig	2025-11-19 20:00:00.000000000 +0000
++++ src/index.js	2025-11-19 21:00:00.000000000 +0000
+@@ -21,11 +21,11 @@
+     const { registerFont } = await import('canvas');
+     console.log('🎨 Registering custom fonts...'.cyan);
+     const fontsToRegister = [
+-        { path: join(__dirname, '../fonts/Damion-Regular.ttf'), family: 'Damion' },
+-        { path: join(__dirname, '../fonts/Pacifico-Regular.ttf'), family: 'Pacifico' },
+-        { path: join(__dirname, '../fonts/GreatVibes-Regular.ttf'), family: 'Great Vibes' },
+-        { path: join(__dirname, '../fonts/Lobster-Regular.ttf'), family: 'Lobster' },
+-        { path: join(__dirname, '../fonts/ArchitectsDaughter-Regular.ttf'), family: 'Architects Daughter' }
++        { path: join(dirname(__dirname), 'fonts/Damion-Regular.ttf'), family: 'Damion' },
++        { path: join(dirname(__dirname), 'fonts/Pacifico-Regular.ttf'), family: 'Pacifico' },
++        { path: join(dirname(__dirname), 'fonts/GreatVibes-Regular.ttf'), family: 'Great Vibes' },
++        { path: join(dirname(__dirname), 'fonts/Lobster-Regular.ttf'), family: 'Lobster' },
++        { path: join(dirname(__dirname), 'fonts/ArchitectsDaughter-Regular.ttf'), family: 'Architects Daughter' }
+     ];
+ 
+     fontsToRegister.forEach(font => {
+@@ -140,7 +140,7 @@
+     return str.substring(0, maxLength - 3) + '...';
+ }
+ 
+-client.once('ready', async () => {
++client.once('clientReady', async () => {
+     console.log('\n╔═══════════════════════════════════╗'.cyan);
+     console.log(`║  Bot is online as ${client.user.tag}  ║`.cyan.bold);
+     console.log('╚═══════════════════════════════════╝\n'.cyan);

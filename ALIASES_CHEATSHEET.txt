@@ -1,0 +1,95 @@
+╔═══════════════════════════════════════════════════════════╗
+║        COMMAND ALIASES QUICK REFERENCE CARD               ║
+║                    Save & Print This!                     ║
+╚═══════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────┐
+│ 🎵 PLAYBACK COMMANDS                                    │
+├─────────────────────────────────────────────────────────┤
+│ -p <song>     →  play       Example: -p rickroll        │
+│ -s            →  skip       Example: -s 3               │
+│ -pau          →  pause      Example: -pau               │
+│ -res          →  pause      Example: -res (resume)      │
+│ -st           →  stop       Example: -st                │
+│ -np           →  nowplaying Example: -np                │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│ 📜 QUEUE COMMANDS                                       │
+├─────────────────────────────────────────────────────────┤
+│ -q            →  queue      Example: -q                 │
+│ -rm <pos>     →  remove     Example: -rm 5              │
+│ -m <from> <to>→  move       Example: -m 3 1             │
+│ -sh           →  shuffle    Example: -sh                │
+│ -l            →  loop       Example: -l                 │
+│ -cq           →  clearqueue Example: -cq                │
+│ -ap           →  autoplay   Example: -ap                │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│ 🎛️ AUDIO CONTROL                                        │
+├─────────────────────────────────────────────────────────┤
+│ -v <0-200>    →  volume     Example: -v 80              │
+│ -f <filter>   →  filters    Example: -f bassboost       │
+│               →  seek       Example: -seek 1m30s        │
+│               →  speed      Example: -speed 1.5         │
+│               →  pitch      Example: -pitch 1.2         │
+│               →  rate       Example: -rate 1.5          │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│ 🔊 VOICE CHANNEL                                        │
+├─────────────────────────────────────────────────────────┤
+│ -j            →  join       Example: -j                 │
+│ -lv           →  leave      Example: -lv                │
+│ -dc           →  disconnect Example: -dc                │
+│               →  247        Example: -247               │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│ ℹ️ INFORMATION                                          │
+├─────────────────────────────────────────────────────────┤
+│ -h            →  help       Example: -h                 │
+│ -a            →  about      Example: -a                 │
+│ -ly           →  lyrics     Example: -ly                │
+│ -cs           →  clearstatus Example: -cs               │
+│               →  ping       Example: -ping              │
+└─────────────────────────────────────────────────────────┘
+
+╔═══════════════════════════════════════════════════════════╗
+║ 🚀 SUPER FAST WORKFLOW                                    ║
+╠═══════════════════════════════════════════════════════════╣
+║  -j              # Join your voice channel                ║
+║  -p song name    # Play a song                            ║
+║  -v 150          # Increase volume                        ║
+║  -s              # Skip track                             ║
+║  -q              # Check queue                            ║
+║  -pau            # Pause                                  ║
+║  -res            # Resume                                 ║
+║  -dc             # Disconnect                             ║
+╚═══════════════════════════════════════════════════════════╝
+
+╔═══════════════════════════════════════════════════════════╗
+║ 💡 PRO TIPS                                               ║
+╠═══════════════════════════════════════════════════════════╣
+║  • Aliases work ONLY with `-` prefix (not `/`)            ║
+║  • Use short aliases on mobile for faster typing          ║
+║  • Mix aliases and full commands freely                   ║
+║  • Slash commands (`/`) have autocomplete                 ║
+║  • Text commands (`-`) are faster to type                 ║
+║  • Aliases (like `-p`) are the fastest!                   ║
+╚═══════════════════════════════════════════════════════════╝
+
+╔═══════════════════════════════════════════════════════════╗
+║ 📊 TYPING COMPARISON                                      ║
+╠═══════════════════════════════════════════════════════════╣
+║  /play song          29 chars  ⏱️  Autocomplete           ║
+║  -play song          11 chars  ✅  Faster                  ║
+║  -p song              7 chars  🚀  FASTEST!                ║
+║                                                            ║
+║  Aliases save you 40-60% typing per command!              ║
+╚═══════════════════════════════════════════════════════════╝
+
+═══════════════════════════════════════════════════════════
+Remember: `-p`, `-s`, `-q`, `-v` are your best friends! ⚡
+═══════════════════════════════════════════════════════════

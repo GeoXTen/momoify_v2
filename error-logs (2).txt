@@ -1,0 +1,50 @@
+2025-11-19T02:47:27: pause(false) failed: Player is already paused - not able to pause.
+2025-11-19T02:47:28: [31mFailed to send Now Playing message: Cannot read properties of undefined (reading 'config')[39m
+2025-11-19T02:47:30: [31mFailed to send Now Playing message: Cannot read properties of undefined (reading 'config')[39m
+2025-11-19T02:48:08: [31mFailed to send Now Playing message: Cannot read properties of undefined (reading 'config')[39m
+2025-11-19T02:48:37: [31mFailed to send Now Playing message: Cannot read properties of undefined (reading 'config')[39m
+2025-11-19T02:55:49: [31mFailed to send Now Playing message: Cannot read properties of undefined (reading 'config')[39m
+2025-11-19T02:58:09: pause(false) failed: Player is already paused - not able to pause.
+2025-11-19T02:58:09: [31mFailed to send Now Playing message: Cannot read properties of undefined (reading 'config')[39m
+2025-11-19T02:58:24: [31mError executing command play:[39m Error: Lavalink Node, has no sourceManagers enabled
+2025-11-19T02:58:24:     at ManagerUtils.validateQueryString (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:680:50)
+2025-11-19T02:58:24:     at LavalinkNode.search (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:1105:44)
+2025-11-19T02:58:24:     at Object.execute (file:///home/geo/bot/src/commands/play.js:90:32)
+2025-11-19T02:58:24:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-11-19T02:58:24:     at async handleMessageCommand (file:///home/geo/bot/src/handlers/messageHandler.js:481:13)
+2025-11-19T02:58:24:     at async Client.<anonymous> (file:///home/geo/bot/src/index.js:278:5)
+2025-11-19T02:58:51: [31mError executing command play:[39m Error: Lavalink Node, has no sourceManagers enabled
+2025-11-19T02:58:51:     at ManagerUtils.validateQueryString (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:680:50)
+2025-11-19T02:58:51:     at LavalinkNode.search (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:1105:44)
+2025-11-19T02:58:51:     at Object.execute (file:///home/geo/bot/src/commands/play.js:90:32)
+2025-11-19T02:58:51:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-11-19T02:58:51:     at async handleMessageCommand (file:///home/geo/bot/src/handlers/messageHandler.js:481:13)
+2025-11-19T02:58:51:     at async Client.<anonymous> (file:///home/geo/bot/src/index.js:278:5)
+2025-11-19T02:59:01: [31mError searching:[39m Error: Lavalink Node, has no sourceManagers enabled
+2025-11-19T02:59:01:     at ManagerUtils.validateQueryString (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:680:50)
+2025-11-19T02:59:01:     at LavalinkNode.search (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:1105:44)
+2025-11-19T02:59:01:     at handleSearch (file:///home/geo/bot/src/commands/search.js:198:35)
+2025-11-19T02:59:01:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-11-19T02:59:01:     at async Object.execute (file:///home/geo/bot/src/commands/search.js:146:9)
+2025-11-19T02:59:01:     at async Client.<anonymous> (file:///home/geo/bot/src/index.js:243:9)
+2025-11-19T02:59:23: [31mError searching:[39m Error: Lavalink Node, has no sourceManagers enabled
+2025-11-19T02:59:23:     at ManagerUtils.validateQueryString (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:680:50)
+2025-11-19T02:59:23:     at LavalinkNode.search (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:1105:44)
+2025-11-19T02:59:23:     at handleSearch (file:///home/geo/bot/src/commands/search.js:198:35)
+2025-11-19T02:59:23:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-11-19T02:59:23:     at async Object.execute (file:///home/geo/bot/src/commands/search.js:146:9)
+2025-11-19T02:59:23:     at async Client.<anonymous> (file:///home/geo/bot/src/index.js:243:9)
+2025-11-19T03:27:23: [31mError executing command play:[39m Error: Lavalink Node, has no sourceManagers enabled
+2025-11-19T03:27:23:     at ManagerUtils.validateQueryString (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:680:50)
+2025-11-19T03:27:23:     at LavalinkNode.search (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:1105:44)
+2025-11-19T03:27:23:     at Object.execute (file:///home/geo/bot/src/commands/play.js:90:32)
+2025-11-19T03:27:23:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-11-19T03:27:23:     at async handleMessageCommand (file:///home/geo/bot/src/handlers/messageHandler.js:481:13)
+2025-11-19T03:27:23:     at async Client.<anonymous> (file:///home/geo/bot/src/index.js:278:5)
+2025-11-19T03:27:48: [31mError executing command play:[39m Error: Lavalink Node, has no sourceManagers enabled
+2025-11-19T03:27:48:     at ManagerUtils.validateQueryString (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:680:50)
+2025-11-19T03:27:48:     at LavalinkNode.search (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:1105:44)
+2025-11-19T03:27:48:     at Object.execute (file:///home/geo/bot/src/commands/play.js:90:32)
+2025-11-19T03:27:48:     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-11-19T03:27:48:     at async handleMessageCommand (file:///home/geo/bot/src/handlers/messageHandler.js:481:13)
+2025-11-19T03:27:48:     at async Client.<anonymous> (file:///home/geo/bot/src/index.js:278:5)

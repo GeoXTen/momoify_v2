@@ -1,0 +1,62 @@
+{
+  "name": "momoify",
+  "version": "2.2.1",
+  "description": "Advanced Discord music bot with Lavalink client and activity status",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "register": "node src/register-commands.js",
+    "dev": "node --watch src/index.js",
+    "lavalink:auto": "node scripts/auto-select-lavalink.mjs",
+    "lavalink:choose": "node scripts/auto-select-lavalink.mjs --choose",
+    "lavalink:test": "node scripts/auto-select-lavalink.mjs --dry-run",
+    "lavalink:test-choose": "node scripts/auto-select-lavalink.mjs --choose --dry-run",
+    "start:auto": "node scripts/auto-select-lavalink.mjs \"npm start\"",
+    "start:choose": "node scripts/auto-select-lavalink.mjs \"npm start\" --choose",
+    "pm2:auto": "node scripts/auto-select-lavalink.mjs \"pm2 start ecosystem.config.mjs --name momoify-bot\"",
+    "pm2:choose": "node scripts/auto-select-lavalink.mjs \"pm2 start ecosystem.config.mjs --name momoify-bot\" --choose",
+    "pm2:custom": "node scripts/auto-select-lavalink.mjs \"pm2 start src/index.js --name momoify-bot --watch --max-memory-restart 500M\" --choose",
+    "pm2:custom-auto": "node scripts/auto-select-lavalink.mjs \"pm2 start src/index.js --name momoify-bot --watch --max-memory-restart 500M\"",
+    "lavalink:real-test": "node scripts/auto-select-lavalink-real.mjs --choose --dry-run --verbose",
+    "lavalink:real-v4": "node scripts/auto-select-lavalink-real.mjs --choose --dry-run --v4 --verbose",
+    "pm2:real": "node scripts/auto-select-lavalink-real.mjs \"pm2 start src/index.js --name momoify-bot --watch --max-memory-restart 500M\" --choose",
+    "pm2:real-v4": "node scripts/auto-select-lavalink-real.mjs \"pm2 start src/index.js --name momoify-bot --watch --max-memory-restart 500M\" --choose --v4",
+    "pm2:real-auto": "node scripts/auto-select-lavalink-real.mjs \"pm2 start src/index.js --name momoify-bot --watch --max-memory-restart 500M\"",
+    "chooser:pm2": "pm2 start ecosystem.lavalink-chooser.config.mjs",
+    "chooser:pm2-interactive": "bash scripts/run-lavalink-chooser-pm2.sh --choose",
+    "chooser:pm2-auto": "bash scripts/run-lavalink-chooser-pm2.sh",
+    "chooser:pm2-stop": "pm2 stop lavalink-chooser && pm2 delete lavalink-chooser",
+    "chooser:pm2-logs": "pm2 logs lavalink-chooser",
+    "lavalink:start": "pm2 start ecosystem.lavalink.config.mjs",
+    "lavalink:stop": "pm2 stop lavalink",
+    "lavalink:restart": "pm2 restart lavalink",
+    "lavalink:logs": "pm2 logs lavalink",
+    "lavalink:local": "bash scripts/switch-to-local-lavalink.sh",
+    "start:all": "pm2 start ecosystem.all.config.mjs",
+    "start:all-windows": "scripts\\start-all.bat",
+    "start:all-linux": "bash scripts/start-all.sh",
+    "stop:all": "pm2 stop all && pm2 delete all"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "music",
+    "lavalink"
+  ],
+  "author": "GeoNFs",
+  "license": "MIT",
+  "dependencies": {
+    "canvas": "3.2.0",
+    "colors": "^1.4.0",
+    "cors": "^2.8.5",
+    "discord.js": "^14.25.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "genius-lyrics": "^4.4.7",
+    "lavalink-client": "^2.6.7"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

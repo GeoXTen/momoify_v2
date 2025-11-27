@@ -1,0 +1,11 @@
+node_modules/
+.env
+logs/
+*.log
+.DS_Store
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+data/aliases.json
+data/config.json
+data/playlists.json

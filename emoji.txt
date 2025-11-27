@@ -1,0 +1,153 @@
+# 🎨 Custom Emojis for Music Bot
+# Last Updated: 2025-01-17
+# Use -listemojis command to refresh this list
+
+## ⚠️ ACTIVE EMOJI IDs - Currently Used in Bot
+## These are the emoji IDs currently configured in src/config.js
+
+## Music Player Controls
+play: 1439784311086645309
+pause: 1439806475458449448
+loop: 1439803192824303669
+player: 1439063416185688239
+seek: 1439063423823384588
+previous: 1439785185628524727
+skip: 1439785191492157492
+stop: 1439785197712179260
+shuffle: 1439780008465010870
+refresh: 1439785212467875841
+
+## Audio & Volume
+volume: 1439063432413315182
+headphone: 1439063440936145027
+
+## Queue & Status
+queue: 1439044159305416704
+cloudnote: 1439063457105186876
+disk: 1439063465301114950
+
+## Progress Bar Elements
+startingfillbar: 1439785219518500894
+middlefillbar: 1439785226317336878
+middledotfillbar: 1439785232978022400
+emptymiddlebar: 1439785239848157307
+emptyendbar: 1439785246622220379
+
+## Music Icons & Notes
+melody: 1439063473916084295
+note1: 1439063482031935598
+note2: 1439063490345042081
+note3: 1439063498494709871
+note4: 1439063506552094800
+stars: 1439063514890371183
+
+## Status & Verification
+checkmark: 1439063523039908002
+verified: 1439063531206217768
+time: 1439063539636768893
+
+## Music Platform Sources
+youtube: 1439063548872626380
+spotify: 1439063557084938351
+soundcloud: 1439063565314035824
+applemusic: 1439063573656768653
+deezer: 1439063582036987964
+
+## Control & Source Icons
+control: 1439090516825477120
+source: 1439090541634523146
+
+---
+
+## 📋 Discord Format (Copy-Paste Ready)
+<:play:1439784311086645309>
+<:pause:1439785173024505997>
+<:loop:1439785179098120254>
+<:player:1439063416185688239>
+<:seek:1439063423823384588>
+<:previous:1439785185628524727>
+<:skip:1439785191492157492>
+<:stop:1439785197712179260>
+<a:shuffle:1377553928996130847>
+<:refresh:1439785212467875841>
+<:volume:1439063432413315182>
+<:headphone:1439063440936145027>
+<:queue:1439044159305416704>
+<:cloudnote:1439063457105186876>
+<:disk:1439063465301114950>
+<:startingfillbar:1439785219518500894>
+<:middlefillbar:1439785226317336878>
+<:middledotfillbar:1439785232978022400>
+<:emptymiddlebar:1439785239848157307>
+<:emptyendbar:1439785246622220379>
+<:melody:1439063473916084295>
+<:note1:1439063482031935598>
+<:note2:1439063490345042081>
+<:note3:1439063498494709871>
+<:note4:1439063506552094800>
+<:stars:1439063514890371183>
+<:checkmark:1439063523039908002>
+<:verified:1439063531206217768>
+<:time:1439063539636768893>
+<:youtube:1439063548872626380>
+<:spotify:1439063557084938351>
+<:soundcloud:1439063565314035824>
+<:applemusic:1439063573656768653>
+<:deezer:1439063582036987964>
+<:control:1439090516825477120>
+<:source:1439090541634523146>
+
+---
+
+## 📥 CDN URLs (For uploademojis command)
+https://cdn.discordapp.com/emojis/1439784311086645309.png
+https://cdn.discordapp.com/emojis/1439785173024505997.png
+https://cdn.discordapp.com/emojis/1439785179098120254.png
+https://cdn.discordapp.com/emojis/1439063416185688239.png
+https://cdn.discordapp.com/emojis/1439063423823384588.png
+https://cdn.discordapp.com/emojis/1439785185628524727.png
+https://cdn.discordapp.com/emojis/1439785191492157492.png
+https://cdn.discordapp.com/emojis/1439785197712179260.png
+https://cdn.discordapp.com/emojis/1377553928996130847.gif
+https://cdn.discordapp.com/emojis/1439785212467875841.png
+https://cdn.discordapp.com/emojis/1439063432413315182.png
+https://cdn.discordapp.com/emojis/1439063440936145027.png
+https://cdn.discordapp.com/emojis/1439044159305416704.png
+https://cdn.discordapp.com/emojis/1439063457105186876.png
+https://cdn.discordapp.com/emojis/1439063465301114950.png
+https://cdn.discordapp.com/emojis/1439785219518500894.png
+https://cdn.discordapp.com/emojis/1439785226317336878.png
+https://cdn.discordapp.com/emojis/1439785232978022400.png
+https://cdn.discordapp.com/emojis/1439785239848157307.png
+https://cdn.discordapp.com/emojis/1439785246622220379.png
+https://cdn.discordapp.com/emojis/1439063473916084295.png
+https://cdn.discordapp.com/emojis/1439063482031935598.png
+https://cdn.discordapp.com/emojis/1439063490345042081.png
+https://cdn.discordapp.com/emojis/1439063498494709871.png
+https://cdn.discordapp.com/emojis/1439063506552094800.png
+https://cdn.discordapp.com/emojis/1439063514890371183.png
+https://cdn.discordapp.com/emojis/1439063523039908002.png
+https://cdn.discordapp.com/emojis/1439063531206217768.png
+https://cdn.discordapp.com/emojis/1439063539636768893.png
+https://cdn.discordapp.com/emojis/1439063548872626380.png
+https://cdn.discordapp.com/emojis/1439063557084938351.png
+https://cdn.discordapp.com/emojis/1439063565314035824.png
+https://cdn.discordapp.com/emojis/1439063573656768653.png
+https://cdn.discordapp.com/emojis/1439063582036987964.png
+https://cdn.discordapp.com/emojis/1439090516825477120.png
+https://cdn.discordapp.com/emojis/1439090541634523146.png
+
+---
+
+## 💡 Usage Tips
+1. Run `-listemojis` command to see all available emojis in your Discord servers
+2. Copy emoji codes directly from Discord using `\:emoji_name:`
+3. Update this file and src/config.js when emojis change
+4. Format: `<:name:id>` for static, `<a:name:id>` for animated emojis
+5. If emoji doesn't display, check that the bot has access to the server with that emoji
+6. Use `-uploademojis` to upload all emojis to your server
+
+
+update on bot
+<:shuffle:1439780008465010870>
+<:loop:1439800947080560730>

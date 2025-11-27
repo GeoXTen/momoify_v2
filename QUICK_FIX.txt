@@ -1,0 +1,61 @@
+========================================
+QUICK FIX FOR CANVAS BUILD ERROR
+========================================
+
+YOUR ISSUE:
+- Canvas 3.2.0 doesn't work with AlmaLinux 9's librsvg version
+- Error: 'rsvg_handle_get_intrinsic_size_in_pixels' not found
+
+THE FIX:
+Downgrade to Canvas 2.11.2
+
+========================================
+COMMANDS TO RUN ON YOUR ALMALINUX SERVER:
+========================================
+
+cd /home/geo/bot
+npm uninstall canvas
+npm install canvas@2.11.2
+
+========================================
+OR EDIT package.json FIRST:
+========================================
+
+Change line 20 from:
+  "canvas": "^3.2.0",
+
+To:
+  "canvas": "^2.11.2",
+
+Then run:
+  cd /home/geo/bot
+  npm install
+
+========================================
+AFTER INSTALLATION:
+========================================
+
+# Test canvas
+node -e "const { createCanvas } = require('canvas'); console.log('✅ Works!');"
+
+# Restart your bot
+pm2 restart geomsc
+
+========================================
+WHY THIS WORKS:
+========================================
+
+Canvas 2.11.2 is compatible with AlmaLinux 9's system libraries.
+It has all the features you need for Discord bot image generation.
+No system upgrades required!
+
+========================================
+DOCUMENTATION:
+========================================
+
+See these files for more details:
+- CANVAS_FIX_ALMALINUX.md (comprehensive guide)
+- FIX_CANVAS_RSVG.md (technical details)
+- CANVAS_INSTALL_FIX.md (general guide)
+
+========================================
