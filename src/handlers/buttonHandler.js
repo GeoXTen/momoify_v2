@@ -1590,7 +1590,18 @@ async function handleHelpButton(interaction, type, client) {
 }
 
 async function handleSearchButton(interaction, args, client) {
-    const [subAction, index, userId] = args;
+    const [subAction, currentPageOrIndex, userIdOrPage, ...rest] = args;
+    
+    // Determine userId based on button type
+    let userId;
+    if (subAction === 'prev' || subAction === 'next') {
+        userId = userIdOrPage;
+    } else if (subAction === 'page') {
+        // Page info button (disabled)
+        return;
+    } else {
+        userId = rest[0] || userIdOrPage;
+    }
     
     // Check if button was pressed by the original user
     if (interaction.user.id !== userId) {
@@ -1601,6 +1612,127 @@ async function handleSearchButton(interaction, args, client) {
             }],
             flags: 64 // Ephemeral
         });
+    }
+    
+    // Retrieve cached search results
+    const cacheKey = `${userId}_${interaction.message.interaction.id}`;
+    const cached = client.searchCache?.get(cacheKey);
+    
+    if (!cached) {
+        return interaction.reply({
+            embeds: [{
+                color: client.config.colors.error,
+                description: `${client.config.emojis.error} Search results expired. Please search again.`
+            }],
+            flags: 64 // Ephemeral
+        });
+    }
+    
+    // Handle pagination (prev/next)
+    if (subAction === 'prev' || subAction === 'next') {
+        await interaction.deferUpdate();
+        
+        const currentPage = parseInt(currentPageOrIndex);
+        const newPage = subAction === 'prev' ? currentPage - 1 : currentPage + 1;
+        
+        // Get tracks for new page
+        const pageSize = cached.pageSize || 10;
+        const allTracks = cached.allTracks;
+        const tracks = allTracks.slice(newPage * pageSize, (newPage + 1) * pageSize);
+        const totalPages = cached.totalPages;
+        
+        // Update cached data
+        cached.currentPage = newPage;
+        cached.tracks = tracks;
+        
+        // Rebuild embed and buttons
+        const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = await import('discord.js');
+        
+        const formatDuration = (ms) => {
+            const seconds = Math.floor(ms / 1000);
+            const hours = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            if (hours > 0) return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        };
+        
+        const embed = new EmbedBuilder()
+            .setColor(cached.platformConfig.color)
+            .setTitle(`${cached.platformConfig.emoji} Search Results - ${cached.usedFallback ? cached.fallbackSource : cached.platformConfig.name}`)
+            .setDescription(`Found **${allTracks.length}** results for **${cached.query}**\n\nSelect a track to play:\n\n📄 Page ${newPage + 1} of ${totalPages}`)
+            .setTimestamp();
+        
+        if (cached.usedFallback) {
+            embed.addFields({
+                name: '⚠️ Fallback Used',
+                value: `${cached.platformConfig.name} plugin is not available or returned no results. Using ${cached.fallbackSource} instead.`,
+                inline: false
+            });
+        }
+        
+        tracks.forEach((track, index) => {
+            const duration = track.info.isStream ? '🔴 LIVE' : formatDuration(track.info.duration);
+            const trackNumber = newPage * pageSize + index + 1;
+            embed.addFields({
+                name: `${trackNumber}. ${track.info.title}`,
+                value: `👤 ${track.info.author} • ⏱️ ${duration}`,
+                inline: false
+            });
+        });
+        
+        // Rebuild buttons
+        const row1 = new ActionRowBuilder();
+        const row2 = new ActionRowBuilder();
+        const row3 = new ActionRowBuilder();
+        
+        for (let i = 0; i < Math.min(tracks.length, 10); i++) {
+            const trackNumber = newPage * pageSize + i + 1;
+            const button = new ButtonBuilder()
+                .setCustomId(`search_select_${i}_${newPage}_${userId}`)
+                .setLabel(`${trackNumber}`)
+                .setStyle(ButtonStyle.Primary);
+            
+            if (i < 5) {
+                row1.addComponents(button);
+            } else {
+                row2.addComponents(button);
+            }
+        }
+        
+        const prevButton = new ButtonBuilder()
+            .setCustomId(`search_prev_${newPage}_${userId}`)
+            .setLabel('◀ Previous')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(newPage === 0);
+        
+        const pageButton = new ButtonBuilder()
+            .setCustomId(`search_page_info_${userId}`)
+            .setLabel(`Page ${newPage + 1}/${totalPages}`)
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(true);
+        
+        const nextButton = new ButtonBuilder()
+            .setCustomId(`search_next_${newPage}_${userId}`)
+            .setLabel('Next ▶')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(newPage >= totalPages - 1);
+        
+        const cancelButton = new ButtonBuilder()
+            .setCustomId(`search_cancel_${userId}`)
+            .setLabel('Cancel')
+            .setStyle(ButtonStyle.Danger);
+        
+        row3.addComponents(prevButton, pageButton, nextButton, cancelButton);
+        
+        const components = [row1];
+        if (tracks.length > 5) {
+            components.push(row2);
+        }
+        components.push(row3);
+        
+        await interaction.editReply({ embeds: [embed], components });
+        return;
     }
     
     if (subAction === 'cancel') {
@@ -1618,28 +1750,14 @@ async function handleSearchButton(interaction, args, client) {
         
         // Clean up cache
         if (client.searchCache) {
-            const cacheKey = `${userId}_${interaction.message.interaction.id}`;
             client.searchCache.delete(cacheKey);
         }
         return;
     }
     
     if (subAction === 'select') {
-        const trackIndex = parseInt(index);
-        
-        // Retrieve cached search results
-        if (!client.searchCache) {
-            return interaction.reply({
-                embeds: [{
-                    color: client.config.colors.error,
-                    description: `${client.config.emojis.error} Search results expired. Please search again.`
-                }],
-                flags: 64 // Ephemeral
-            });
-        }
-        
-        const cacheKey = `${userId}_${interaction.message.interaction.id}`;
-        const cached = client.searchCache.get(cacheKey);
+        const trackIndex = parseInt(currentPageOrIndex);
+        const currentPage = parseInt(userIdOrPage);
         
         if (!cached || !cached.tracks || !cached.tracks[trackIndex]) {
             return interaction.reply({

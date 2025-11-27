@@ -436,7 +436,10 @@ client.lavalink.on('trackStart', async (player, track, payload) => {
             ? track.info.title.substring(0, maxTitleLength) + '...' 
             : track.info.title;
         
-        const statusText = `${config.emojis.play} **▸ ${truncatedTitle} - ${track.info.author}**`;
+        // Remove " - Topic" suffix from artist name (YouTube auto-generated channels)
+        const cleanAuthor = track.info.author.replace(/\s*-\s*Topic$/i, '');
+        
+        const statusText = `${config.emojis.play} **▸ ${truncatedTitle} - ${cleanAuthor}**`;
         console.log(`Status text: ${statusText}`);
         
         console.log(`Attempting to set status via REST API...`.yellow);
@@ -531,22 +534,60 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
             
             if (lastTrack) {
                 try {
-                    // Search for related tracks based on the last played track
-                    const searchQuery = `${lastTrack.info.title} ${lastTrack.info.author}`;
-                    const res = await player.search(
-                        { query: searchQuery },
-                        lastTrack.requester
-                    );
+                    // Try to get YouTube related tracks first (better recommendations)
+                    let res;
+                    const identifier = lastTrack.info.identifier; // YouTube video ID
+                    
+                    if (identifier && lastTrack.info.sourceName === 'youtube') {
+                        // Use YouTube's related video feature
+                        console.log(`🔍 Getting YouTube related tracks for: ${lastTrack.info.title}`.cyan);
+                        res = await player.search(
+                            { query: `https://www.youtube.com/watch?v=${identifier}&list=RD${identifier}` },
+                            lastTrack.requester
+                        );
+                    }
+                    
+                    // Fallback to search if YouTube related doesn't work
+                    if (!res || !res.tracks || res.tracks.length < 5) {
+                        console.log(`🔍 Searching for related tracks: ${lastTrack.info.title}`.cyan);
+                        const searchQuery = `${lastTrack.info.title} ${lastTrack.info.author}`;
+                        res = await player.search(
+                            { query: searchQuery },
+                            lastTrack.requester
+                        );
+                    }
                     
                     if (res.tracks && res.tracks.length > 0) {
-                        // Add multiple tracks (skip the first one as it's likely the same song)
-                        const tracksToAdd = res.tracks.slice(1, 6); // Add 5 related tracks
+                        // Filter out duplicates and the same song
+                        const existingTitles = new Set([
+                            lastTrack.info.title.toLowerCase(),
+                            ...player.queue.tracks.map(t => t.info.title.toLowerCase())
+                        ]);
                         
-                        for (const newTrack of tracksToAdd) {
+                        const uniqueTracks = [];
+                        for (const track of res.tracks) {
+                            const trackTitle = track.info.title.toLowerCase();
+                            const trackKey = `${trackTitle}_${track.info.author.toLowerCase()}`;
+                            
+                            // Skip if it's the same song or already in queue
+                            if (!existingTitles.has(trackTitle) && !existingTitles.has(trackKey)) {
+                                uniqueTracks.push(track);
+                                existingTitles.add(trackTitle);
+                                existingTitles.add(trackKey);
+                                
+                                if (uniqueTracks.length >= 10) break;
+                            }
+                        }
+                        
+                        // Add the unique tracks to queue
+                        for (const newTrack of uniqueTracks) {
                             player.queue.add(newTrack);
                         }
                         
-                        console.log(`✅ Added ${tracksToAdd.length} related tracks via autoplay`.green);
+                        console.log(`✅ Added ${uniqueTracks.length} unique related tracks via autoplay`.green);
+                        uniqueTracks.forEach((t, i) => {
+                            console.log(`   ${i + 1}. ${t.info.title} - ${t.info.author}`.gray);
+                        });
                         
                         // Start playing if not already playing
                         if (!player.playing) {

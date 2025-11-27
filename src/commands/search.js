@@ -241,8 +241,14 @@ async function handleSearch(interaction, client, platform, query, type = 'track'
             return;
         }
         
-        // Limit to top 5 results
-        const tracks = result.tracks.slice(0, 5);
+        // Store all tracks for pagination (up to 50 results)
+        const allTracks = result.tracks.slice(0, 50);
+        const pageSize = 10;
+        const currentPage = 0;
+        
+        // Get tracks for current page
+        const tracks = allTracks.slice(currentPage * pageSize, (currentPage + 1) * pageSize);
+        const totalPages = Math.ceil(allTracks.length / pageSize);
         
         // Format duration
         const formatDuration = (ms) => {
@@ -261,7 +267,7 @@ async function handleSearch(interaction, client, platform, query, type = 'track'
         const embed = new EmbedBuilder()
             .setColor(platformConfig.color)
             .setTitle(`${platformConfig.emoji} Search Results - ${usedFallback ? fallbackSource : platformConfig.name}`)
-            .setDescription(`Found **${result.tracks.length}** results for **${query}**\n\nSelect a track to play:`)
+            .setDescription(`Found **${allTracks.length}** results for **${query}**\n\nSelect a track to play:\n\n📄 Page ${currentPage + 1} of ${totalPages}`)
             .setTimestamp();
         
         // Add fallback warning if used
@@ -276,44 +282,66 @@ async function handleSearch(interaction, client, platform, query, type = 'track'
         // Add track fields
         tracks.forEach((track, index) => {
             const duration = track.info.isStream ? '🔴 LIVE' : formatDuration(track.info.duration);
+            const trackNumber = currentPage * pageSize + index + 1;
             embed.addFields({
-                name: `${index + 1}. ${track.info.title}`,
+                name: `${trackNumber}. ${track.info.title}`,
                 value: `👤 ${track.info.author} • ⏱️ ${duration}`,
                 inline: false
             });
         });
         
-        // Create buttons for selection
+        // Create buttons for selection (up to 10 tracks)
         const row1 = new ActionRowBuilder();
         const row2 = new ActionRowBuilder();
+        const row3 = new ActionRowBuilder();
         
-        for (let i = 0; i < Math.min(tracks.length, 5); i++) {
+        for (let i = 0; i < Math.min(tracks.length, 10); i++) {
+            const trackNumber = currentPage * pageSize + i + 1;
             const button = new ButtonBuilder()
-                .setCustomId(`search_select_${i}_${interaction.user.id}`)
-                .setLabel(`${i + 1}`)
+                .setCustomId(`search_select_${i}_${currentPage}_${interaction.user.id}`)
+                .setLabel(`${trackNumber}`)
                 .setStyle(ButtonStyle.Primary);
             
-            if (i < 3) {
+            // Distribute buttons: 5 per row
+            if (i < 5) {
                 row1.addComponents(button);
             } else {
                 row2.addComponents(button);
             }
         }
         
-        // Add cancel button
+        // Navigation buttons on third row
+        const prevButton = new ButtonBuilder()
+            .setCustomId(`search_prev_${currentPage}_${interaction.user.id}`)
+            .setLabel('◀ Previous')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(currentPage === 0);
+        
+        const pageButton = new ButtonBuilder()
+            .setCustomId(`search_page_info_${interaction.user.id}`)
+            .setLabel(`Page ${currentPage + 1}/${totalPages}`)
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(true);
+        
+        const nextButton = new ButtonBuilder()
+            .setCustomId(`search_next_${currentPage}_${interaction.user.id}`)
+            .setLabel('Next ▶')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(currentPage >= totalPages - 1);
+        
         const cancelButton = new ButtonBuilder()
             .setCustomId(`search_cancel_${interaction.user.id}`)
             .setLabel('Cancel')
             .setStyle(ButtonStyle.Danger);
         
-        row2.addComponents(cancelButton);
+        row3.addComponents(prevButton, pageButton, nextButton, cancelButton);
         
+        // Add rows based on number of tracks
         const components = [row1];
-        if (tracks.length > 3) {
+        if (tracks.length > 5) {
             components.push(row2);
-        } else {
-            row1.addComponents(cancelButton);
         }
+        components.push(row3);
         
         // Store tracks in a temporary cache (we'll handle this in button handler)
         if (!client.searchCache) {
@@ -322,10 +350,18 @@ async function handleSearch(interaction, client, platform, query, type = 'track'
         
         const cacheKey = `${interaction.user.id}_${interaction.id}`;
         client.searchCache.set(cacheKey, {
+            allTracks: allTracks,
             tracks: tracks,
             voiceChannelId: voiceChannel.id,
             textChannelId: interaction.channelId,
             platform: platformConfig.name,
+            platformConfig: platformConfig,
+            query: query,
+            currentPage: currentPage,
+            pageSize: pageSize,
+            totalPages: totalPages,
+            usedFallback: usedFallback,
+            fallbackSource: fallbackSource,
             timestamp: Date.now()
         });
         

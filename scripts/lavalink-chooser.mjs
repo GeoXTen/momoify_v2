@@ -15,6 +15,7 @@
  *   --all, -a        Show all servers (default)
  *   --top N          Show only top N servers
  *   --timeout N      HTTP timeout in ms (default: 5000)
+ *   --start-bot      Start the bot after selecting server
  */
 
 import fs from 'fs';
@@ -22,6 +23,7 @@ import https from 'https';
 import http from 'http';
 import { performance } from 'perf_hooks';
 import readline from 'readline';
+import { spawn } from 'child_process';
 
 // Parse --top argument
 function getTopCount() {
@@ -43,7 +45,8 @@ const CONFIG = {
   verbose: process.argv.includes('--verbose') || process.argv.includes('-v'),
   interactive: process.argv.includes('--choose') || process.argv.includes('-c'),
   topCount: getTopCount(),
-  onlyV4: process.argv.includes('--v4-only') || process.argv.includes('--v4')
+  onlyV4: process.argv.includes('--v4-only') || process.argv.includes('--v4'),
+  startBot: process.argv.includes('--start-bot')
 };
 
 // ANSI color codes
@@ -460,6 +463,56 @@ function updateEnvFile(server) {
 }
 
 /**
+ * Start the bot
+ */
+function startBot() {
+  log.header('🚀 Starting Bot');
+  
+  try {
+    const isWindows = process.platform === 'win32';
+    
+    log.info('Starting bot process...');
+    
+    let bot;
+    if (isWindows) {
+      // Windows: use npm.cmd
+      bot = spawn('npm.cmd', ['start'], {
+        detached: true,
+        stdio: 'inherit',
+        shell: true
+      });
+    } else {
+      // Linux/Unix: use npm and properly detach
+      bot = spawn('npm', ['start'], {
+        detached: true,
+        stdio: ['ignore', 'ignore', 'ignore'],
+        shell: true
+      });
+    }
+    
+    bot.on('error', (error) => {
+      log.error(`Failed to start bot: ${error.message}`);
+    });
+    
+    // Detach the process so it continues running
+    bot.unref();
+    
+    log.success('Bot started successfully!');
+    log.info('The bot is now running in the background');
+    
+    if (!isWindows) {
+      log.info('Tip: Use "ps aux | grep node" to check running processes');
+      log.info('Tip: Use "pkill -f node" to stop all node processes');
+    }
+    
+    return true;
+  } catch (error) {
+    log.error(`Failed to start bot: ${error.message}`);
+    return false;
+  }
+}
+
+/**
  * Main function
  */
 async function main() {
@@ -526,6 +579,12 @@ async function main() {
   } else {
     if (updateEnvFile(selectedResult.server)) {
       log.success('Configuration updated successfully!');
+      
+      // Start bot if requested
+      if (CONFIG.startBot) {
+        console.log(''); // Add spacing
+        startBot();
+      }
     }
   }
 }

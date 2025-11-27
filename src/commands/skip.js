@@ -71,14 +71,32 @@ export default {
         
         // Check if there are more tracks to skip to
         if (player.queue.tracks.length === 0) {
-            // No more tracks, stop the player
-            await player.destroy();
-            return interaction.editReply({
-                embeds: [{
-                    color: client.config.colors.success,
-                    description: `${client.config.emojis.skip} Skipped **[${current.info.title}](${current.info.uri})**\n\nQueue is now empty. Player stopped.`
-                }]
-            });
+            // Check if autoplay is enabled
+            const { isAutoplayEnabled } = await import('./autoplay.js');
+            const autoplayEnabled = isAutoplayEnabled(player.guildId);
+            
+            if (autoplayEnabled) {
+                // If autoplay is ON, just skip - it will trigger queueEnd and autoplay will add more songs
+                await player.skip();
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                return interaction.editReply({
+                    embeds: [{
+                        color: client.config.colors.success,
+                        description: `${client.config.emojis.skip} Skipped **[${current.info.title}](${current.info.uri})**\n\n🔄 Autoplay is searching for related tracks...`
+                    }]
+                });
+            } else {
+                // If autoplay is OFF, destroy the player
+                await player.destroy();
+                return interaction.editReply({
+                    embeds: [{
+                        color: client.config.colors.success,
+                        description: `${client.config.emojis.skip} Skipped **[${current.info.title}](${current.info.uri})**\n\nQueue is now empty. Player stopped.`
+                    }]
+                });
+            }
         }
         
         await player.skip();

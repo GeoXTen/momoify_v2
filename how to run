@@ -1,2 +1,0 @@
-npm install
-node scripts/auto-select-lavalink-real.mjs "pm2 restart momoify-bot" --choose --v4  

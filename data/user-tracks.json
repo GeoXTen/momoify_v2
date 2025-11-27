@@ -10,8 +10,8 @@
       "foolycoolyvipvipkotori": {
         "title": "Fooly Cooly VIP (VIP)",
         "artist": "Kotori",
-        "playCount": 5,
-        "totalMinutes": 10
+        "playCount": 6,
+        "totalMinutes": 12
       },
       "thenimda2024showcasenimda": {
         "title": "THE NIMDA 2024 SHOWCASE",
@@ -94,8 +94,8 @@
       "kotoriaobavipdubstepunk": {
         "title": "Kotori - Aoba (VIP)",
         "artist": "Dubstep uNk",
-        "playCount": 8,
-        "totalMinutes": 24
+        "playCount": 9,
+        "totalMinutes": 27
       },
       "kotoriredofficialmusicvideojmsbase": {
         "title": "KOTORI 「RED」 Official Music Video",
@@ -138,6 +138,18 @@
         "artist": "Zomboy",
         "playCount": 1,
         "totalMinutes": 3
+      },
+      "bzzrkkotoriremixsvddendeath": {
+        "title": "BZZRK (Kotori Remix)",
+        "artist": "SVDDEN DEATH",
+        "playCount": 2,
+        "totalMinutes": 6
+      },
+      "fuzekotoriremixkotori": {
+        "title": "Fuze (Kotori Remix)",
+        "artist": "Kotori",
+        "playCount": 2,
+        "totalMinutes": 6
       }
     }
   }

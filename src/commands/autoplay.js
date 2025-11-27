@@ -55,7 +55,7 @@ export default {
                 title: newStatus ? '🔄 Autoplay Enabled' : '⏹️ Autoplay Disabled',
                 description: newStatus 
                     ? `**Unlimited playlist activated!** 🎵\n\n` +
-                      `✅ Related songs will be added automatically\n` +
+                      `✅ 10 related songs will be added automatically\n` +
                       `✅ Music will keep playing indefinitely\n` +
                       `✅ Based on your current queue\n\n` +
                       `Use \`/autoplay\` again to disable.`
