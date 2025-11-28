@@ -456,26 +456,41 @@ client.lavalink.on('trackStart', async (player, track, payload) => {
         console.error(`Failed to update voice status: ${error.message}`.red);
     }
     
-    // Send a new Now Playing message for each track
+    // Send a compact "Started playing" message for each track
     try {
         const guild = client.guilds.cache.get(player.guildId);
         if (!guild) return;
-        
-        const embed = createNowPlayingEmbed(player, client);
-        const buttons = createNowPlayingButtons(player, client);
         
         // Get the text channel from the player or stored channel
         const textChannel = player.get('currentTextChannel') || 
                           (player.textChannelId ? guild.channels.cache.get(player.textChannelId) : null);
         
         if (textChannel) {
-            // Always send a new message for better visibility
+            // Get source emoji
+            let sourceEmoji = config.emojis.note2; // Default
+            const url = track.info.uri || '';
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                sourceEmoji = config.emojis.youtube;
+            } else if (url.includes('spotify.com')) {
+                sourceEmoji = config.emojis.spotify;
+            } else if (url.includes('soundcloud.com')) {
+                sourceEmoji = config.emojis.soundcloud;
+            } else if (url.includes('deezer.com')) {
+                sourceEmoji = config.emojis.deezer;
+            } else if (url.includes('apple.com')) {
+                sourceEmoji = config.emojis.applemusic;
+            }
+            
+            // Send compact message in a box/container style
             const message = await textChannel.send({
-                embeds: [embed],
-                components: [buttons]
+                embeds: [{
+                    color: 0x1DB954, // Spotify green
+                    description: `${sourceEmoji} Started playing **[${track.info.title}](${track.info.uri})** by **${track.info.author}**`
+                }]
             });
+            
             player.nowPlayingMessage = message;
-            console.log(`✓ Now Playing message sent for new track`.green);
+            console.log(`✓ Compact "Started playing" message sent`.green);
         } else {
             console.log(`Could not send Now Playing message - no text channel available`.yellow);
         }

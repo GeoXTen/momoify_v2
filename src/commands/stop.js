@@ -16,6 +16,13 @@ export default {
         // Defer reply for stop operation
         await interaction.deferReply();
         
+        // Cancel any background conversion in progress
+        const isConverting = player.get('backgroundConversion');
+        if (isConverting) {
+            player.set('backgroundConversion', false); // Signal to stop conversion
+            console.log('Cancelled background Spotify conversion'.yellow);
+        }
+        
         // Clear voice channel status before destroying player
         try {
             await client.rest.put(

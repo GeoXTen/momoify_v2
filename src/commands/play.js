@@ -212,44 +212,233 @@ export default {
                                 }]
                             });
                             
-                            // Search for each track on YouTube (configurable limit to avoid timeout)
-                            // Increased limit to 100 tracks (can be adjusted based on server performance)
-                            const maxTracks = Math.min(tracks.length, 100);
+                            // Search for each track on YouTube
+                            // With background conversion, we can handle much larger playlists!
+                            // Configurable limit from config (0 = unlimited)
+                            const configLimit = client.config.spotify.maxPlaylistTracks;
+                            const maxTracks = (configLimit === 0 || !configLimit) ? tracks.length : Math.min(tracks.length, configLimit);
                             const foundTracks = [];
+                            const failedTracks = [];
                             
-                            for (let i = 0; i < maxTracks; i++) {
-                                const track = tracks[i];
-                                if (!track || !track.name) continue;
+                            // Quick start: Convert first 10 tracks immediately, then continue in background
+                            const quickStartLimit = Math.min(10, maxTracks);
+                            
+                            await interaction.editReply({
+                                embeds: [{
+                                    color: client.config.colors.primary,
+                                    description: `${client.config.emojis.loading} **Converting tracks to YouTube...**\n\n` +
+                                               `📊 Total tracks: ${maxTracks}\n` +
+                                               `⚡ Converting first ${quickStartLimit} tracks for quick start...`
+                                }]
+                            });
+                            
+                            // Function to search for a track with fallback strategies
+                            const searchTrack = async (track) => {
+                                if (!track || !track.name) return null;
                                 
-                                // Create search query: "artist - song name"
                                 const artists = track.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
                                 const searchQuery = `${artists} - ${track.name}`;
                                 
                                 try {
-                                    const ytResult = await node.search({
+                                    // Try exact search first: "artist - song name"
+                                    let ytResult = await node.search({
                                         query: searchQuery,
                                         source: 'ytsearch'
                                     }, interaction.user);
                                     
                                     if (ytResult?.tracks?.[0]) {
-                                        foundTracks.push(ytResult.tracks[0]);
+                                        return ytResult.tracks[0];
                                     }
-                                } catch (error) {
+                                    
+                                    // Fallback 1: Try without artist, just song name
+                                    const songOnly = track.name;
+                                    ytResult = await node.search({
+                                        query: songOnly,
+                                        source: 'ytsearch'
+                                    }, interaction.user);
+                                    
+                                    if (ytResult?.tracks?.[0]) {
+                                        console.log(`Found using song name only: ${songOnly}`.yellow);
+                                        return ytResult.tracks[0];
+                                    }
+                                    
+                                    // Fallback 2: Try with "official" keyword
+                                    const officialQuery = `${artists} ${track.name} official`;
+                                    ytResult = await node.search({
+                                        query: officialQuery,
+                                        source: 'ytsearch'
+                                    }, interaction.user);
+                                    
+                                    if (ytResult?.tracks?.[0]) {
+                                        console.log(`Found using "official" keyword: ${officialQuery}`.yellow);
+                                        return ytResult.tracks[0];
+                                    }
+                                    
                                     console.log(`Failed to find: ${searchQuery}`.red);
+                                    failedTracks.push(`${artists} - ${track.name}`);
+                                    return null;
+                                    
+                                } catch (error) {
+                                    console.log(`Search error for: ${searchQuery} - ${error.message}`.red);
+                                    return null;
+                                }
+                            };
+                            
+                            // Phase 1: Quick start - Convert first 10 tracks immediately
+                            for (let i = 0; i < quickStartLimit; i++) {
+                                const foundTrack = await searchTrack(tracks[i]);
+                                if (foundTrack) {
+                                    foundTracks.push(foundTrack);
+                                }
+                            }
+                            
+                            // If we found at least some tracks, start playing immediately
+                            if (foundTracks.length > 0) {
+                                isQuickStartComplete = true;
+                                
+                                // Add the first batch to queue and start playing
+                                player.queue.add(foundTracks);
+                                
+                                if (!player.playing && !player.paused) {
+                                    await player.play();
                                 }
                                 
-                                // Update progress every 20 tracks
-                                if ((i + 1) % 20 === 0) {
+                                // Show "now playing" message
+                                await interaction.editReply({
+                                    embeds: [{
+                                        color: client.config.colors.success,
+                                        title: `${client.config.emojis.play} Starting Playback!`,
+                                        description: `**${playlistData.name}**\n\n` +
+                                                   `⚡ Playing first ${foundTracks.length} tracks now!\n` +
+                                                   `🔄 Converting remaining ${maxTracks - quickStartLimit} tracks in background...`,
+                                        fields: [
+                                            {
+                                                name: '🎵 Now Playing',
+                                                value: `${foundTracks[0].info.author} - ${foundTracks[0].info.title}`,
+                                                inline: false
+                                            },
+                                            {
+                                                name: '📊 Queue Status',
+                                                value: `✅ Ready to play: ${foundTracks.length} tracks\n` +
+                                                       `⏳ Still converting: ${maxTracks - quickStartLimit} tracks`,
+                                                inline: false
+                                            }
+                                        ],
+                                        thumbnail: { url: playlistData.images?.[0]?.url }
+                                    }]
+                                });
+                                
+                                // Phase 2: Background conversion - Continue converting remaining tracks
+                                (async () => {
+                                    console.log(`Background conversion started for remaining ${maxTracks - quickStartLimit} tracks...`.cyan);
+                                    
+                                    // Store background conversion flag on player
+                                    player.set('backgroundConversion', true);
+                                    player.set('backgroundConversionGuild', interaction.guildId);
+                                    
+                                    for (let i = quickStartLimit; i < maxTracks; i++) {
+                                        // Check if conversion should be cancelled (player destroyed or stopped)
+                                        if (!player.connected || player.get('backgroundConversion') === false) {
+                                            console.log(`Background conversion cancelled at track ${i + 1}/${maxTracks}`.yellow);
+                                            await interaction.editReply({
+                                                embeds: [{
+                                                    color: client.config.colors.warning,
+                                                    title: `⚠️ Background Conversion Cancelled`,
+                                                    description: `**${playlistData.name}**\n\n` +
+                                                               `Conversion stopped at **${i}/${maxTracks}** tracks.`,
+                                                    fields: [
+                                                        {
+                                                            name: '📊 Final Stats',
+                                                            value: `✅ Converted: ${foundTracks.length} tracks\n` +
+                                                                   `⏹️ Cancelled: ${maxTracks - i} tracks remaining`,
+                                                            inline: false
+                                                        }
+                                                    ]
+                                                }]
+                                            }).catch(() => {});
+                                            return;
+                                        }
+                                        
+                                        const foundTrack = await searchTrack(tracks[i]);
+                                        if (foundTrack) {
+                                            foundTracks.push(foundTrack);
+                                            player.queue.add(foundTrack);
+                                        }
+                                        
+                                        // Update progress every 20 tracks
+                                        if ((i + 1) % 20 === 0) {
+                                            await interaction.editReply({
+                                                embeds: [{
+                                                    color: client.config.colors.primary,
+                                                    title: `${client.config.emojis.play} Playing & Converting`,
+                                                    description: `**${playlistData.name}**\n\n` +
+                                                               `🎵 Currently playing tracks\n` +
+                                                               `🔄 Background conversion in progress...`,
+                                                    fields: [
+                                                        {
+                                                            name: '📊 Conversion Progress',
+                                                            value: `✅ Converted: ${i + 1}/${maxTracks} tracks\n` +
+                                                                   `✅ Found: ${foundTracks.length} tracks\n` +
+                                                                   `⏱️ Estimated time remaining: ~${Math.ceil((maxTracks - i - 1) / 2)} seconds`,
+                                                            inline: false
+                                                        }
+                                                    ]
+                                                }]
+                                            }).catch(() => {});
+                                        }
+                                    }
+                                    
+                                    // Background conversion complete!
+                                    player.set('backgroundConversion', false); // Mark as complete
+                                    const successRate = Math.round((foundTracks.length / maxTracks) * 100);
+                                    console.log(`Background conversion complete! ${foundTracks.length}/${maxTracks} tracks (${successRate}%)`.green);
+                                    
+                                    // Final update
+                                    const finalEmbedFields = [
+                                        {
+                                            name: '📊 Final Conversion Stats',
+                                            value: `✅ Successfully converted: **${foundTracks.length}** tracks\n` +
+                                                   `❌ Failed to find: **${failedTracks.length}** tracks\n` +
+                                                   `📝 Total in playlist: **${tracks.length}** tracks\n` +
+                                                   `📈 Success rate: **${successRate}%**\n` +
+                                                   `${maxTracks < tracks.length ? `⚠️ Limited to first ${maxTracks} tracks (to avoid timeout)` : ''}`,
+                                            inline: false
+                                        },
+                                        {
+                                            name: '✅ Status',
+                                            value: `Background conversion complete! All tracks added to queue.`,
+                                            inline: false
+                                        }
+                                    ];
+                                    
+                                    // Add failed tracks list if there are any (but keep it short)
+                                    if (failedTracks.length > 0 && failedTracks.length <= 5) {
+                                        finalEmbedFields.push({
+                                            name: '❌ Tracks Not Found on YouTube',
+                                            value: failedTracks.map(t => `• ${t}`).join('\n').substring(0, 1024),
+                                            inline: false
+                                        });
+                                    } else if (failedTracks.length > 5) {
+                                        finalEmbedFields.push({
+                                            name: '❌ Tracks Not Found on YouTube',
+                                            value: `${failedTracks.slice(0, 3).map(t => `• ${t}`).join('\n')}\n...and ${failedTracks.length - 3} more`,
+                                            inline: false
+                                        });
+                                    }
+                                    
                                     await interaction.editReply({
                                         embeds: [{
-                                            color: client.config.colors.primary,
-                                            description: `${client.config.emojis.loading} **Converting tracks to YouTube...**\n\n` +
-                                                       `📊 Progress: ${i + 1}/${maxTracks} tracks\n` +
-                                                       `✅ Found: ${foundTracks.length} tracks\n` +
-                                                       `⏱️ Estimated time remaining: ~${Math.ceil((maxTracks - i - 1) / 2)} seconds`
+                                            color: client.config.colors.success,
+                                            title: `${client.config.emojis.success} Spotify Playlist Fully Converted!`,
+                                            description: `**${playlistData.name}**`,
+                                            fields: finalEmbedFields,
+                                            thumbnail: { url: playlistData.images?.[0]?.url }
                                         }]
                                     }).catch(() => {});
-                                }
+                                })();
+                                
+                                // Return early - music is already playing!
+                                return;
                             }
                             
                             if (foundTracks.length === 0) {
@@ -267,25 +456,45 @@ export default {
                             }
                             
                             // Show success message
+                            const successRate = Math.round((foundTracks.length / maxTracks) * 100);
+                            const embedFields = [
+                                {
+                                    name: '📊 Conversion Stats',
+                                    value: `✅ Successfully converted: **${foundTracks.length}** tracks\n` +
+                                           `❌ Failed to find: **${failedTracks.length}** tracks\n` +
+                                           `📝 Total in playlist: **${tracks.length}** tracks\n` +
+                                           `📈 Success rate: **${successRate}%**\n` +
+                                           `${maxTracks < tracks.length ? `⚠️ Limited to first ${maxTracks} tracks (to avoid timeout)` : ''}`,
+                                    inline: false
+                                },
+                                {
+                                    name: '⚠️ Note',
+                                    value: `Spotify plugin not available - tracks were automatically searched on YouTube`,
+                                    inline: false
+                                }
+                            ];
+                            
+                            // Add failed tracks list if there are any (but keep it short)
+                            if (failedTracks.length > 0 && failedTracks.length <= 5) {
+                                embedFields.push({
+                                    name: '❌ Tracks Not Found on YouTube',
+                                    value: failedTracks.map(t => `• ${t}`).join('\n').substring(0, 1024),
+                                    inline: false
+                                });
+                            } else if (failedTracks.length > 5) {
+                                embedFields.push({
+                                    name: '❌ Tracks Not Found on YouTube',
+                                    value: `${failedTracks.slice(0, 3).map(t => `• ${t}`).join('\n')}\n...and ${failedTracks.length - 3} more`,
+                                    inline: false
+                                });
+                            }
+                            
                             return interaction.editReply({
                                 embeds: [{
                                     color: client.config.colors.success,
                                     title: `${client.config.emojis.success} Spotify Playlist Converted!`,
                                     description: `**${playlistData.name}**`,
-                                    fields: [
-                                        {
-                                            name: '📊 Conversion Stats',
-                                            value: `✅ Successfully converted: **${foundTracks.length}** tracks\n` +
-                                                   `📝 Total in playlist: **${tracks.length}** tracks\n` +
-                                                   `${maxTracks < tracks.length ? `⚠️ Limited to first ${maxTracks} tracks (to avoid timeout)` : ''}`,
-                                            inline: false
-                                        },
-                                        {
-                                            name: '⚠️ Note',
-                                            value: `Spotify plugin not available - tracks were automatically searched on YouTube`,
-                                            inline: false
-                                        }
-                                    ],
+                                    fields: embedFields,
                                     thumbnail: { url: playlistData.images?.[0]?.url }
                                 }]
                             });

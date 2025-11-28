@@ -131,6 +131,7 @@ export default {
     
     spotify: {
         clientId: process.env.SPOTIFY_CLIENT_ID || '',
-        clientSecret: process.env.SPOTIFY_CLIENT_SECRET || ''
+        clientSecret: process.env.SPOTIFY_CLIENT_SECRET || '',
+        maxPlaylistTracks: parseInt(process.env.SPOTIFY_MAX_PLAYLIST_TRACKS) || 0 // Max tracks (0 = unlimited)
     }
 };
