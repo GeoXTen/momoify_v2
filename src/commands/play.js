@@ -182,7 +182,16 @@ export default {
                             });
                             
                             if (!spotifyResponse.ok) {
-                                throw new Error(`Spotify API returned ${spotifyResponse.status}`);
+                                const errorText = await spotifyResponse.text();
+                                let errorMessage = `Spotify API returned ${spotifyResponse.status}`;
+                                
+                                if (spotifyResponse.status === 404) {
+                                    errorMessage = 'Playlist/Album not found or is region-blocked';
+                                } else if (spotifyResponse.status === 403) {
+                                    errorMessage = 'Access to this playlist/album is restricted';
+                                }
+                                
+                                throw new Error(errorMessage);
                             }
                             
                             const playlistData = await spotifyResponse.json();
@@ -203,8 +212,9 @@ export default {
                                 }]
                             });
                             
-                            // Search for each track on YouTube (limit to first 50 tracks to avoid timeout)
-                            const maxTracks = Math.min(tracks.length, 50);
+                            // Search for each track on YouTube (configurable limit to avoid timeout)
+                            // Increased limit to 100 tracks (can be adjusted based on server performance)
+                            const maxTracks = Math.min(tracks.length, 100);
                             const foundTracks = [];
                             
                             for (let i = 0; i < maxTracks; i++) {
@@ -228,14 +238,15 @@ export default {
                                     console.log(`Failed to find: ${searchQuery}`.red);
                                 }
                                 
-                                // Update progress every 10 tracks
-                                if ((i + 1) % 10 === 0) {
+                                // Update progress every 20 tracks
+                                if ((i + 1) % 20 === 0) {
                                     await interaction.editReply({
                                         embeds: [{
                                             color: client.config.colors.primary,
                                             description: `${client.config.emojis.loading} **Converting tracks to YouTube...**\n\n` +
                                                        `📊 Progress: ${i + 1}/${maxTracks} tracks\n` +
-                                                       `✅ Found: ${foundTracks.length} tracks`
+                                                       `✅ Found: ${foundTracks.length} tracks\n` +
+                                                       `⏱️ Estimated time remaining: ~${Math.ceil((maxTracks - i - 1) / 2)} seconds`
                                         }]
                                     }).catch(() => {});
                                 }
@@ -266,7 +277,7 @@ export default {
                                             name: '📊 Conversion Stats',
                                             value: `✅ Successfully converted: **${foundTracks.length}** tracks\n` +
                                                    `📝 Total in playlist: **${tracks.length}** tracks\n` +
-                                                   `${maxTracks < tracks.length ? `⚠️ Limited to first ${maxTracks} tracks` : ''}`,
+                                                   `${maxTracks < tracks.length ? `⚠️ Limited to first ${maxTracks} tracks (to avoid timeout)` : ''}`,
                                             inline: false
                                         },
                                         {
@@ -282,16 +293,57 @@ export default {
                         } catch (error) {
                             console.error(`Failed to convert Spotify playlist: ${error.message}`.red);
                             
-                            // Show error with fallback to manual workarounds
+                            // Check if it's a region block error
+                            const isRegionBlock = error.message.includes('region-blocked') || error.message.includes('not found');
+                            const is404 = error.message.includes('404');
+                            
+                            if (is404 || isRegionBlock) {
+                                return interaction.editReply({
+                                    embeds: [{
+                                        color: client.config.colors.error,
+                                        title: `${client.config.emojis.error} Spotify Playlist/Album Not Available`,
+                                        description: `This Spotify playlist or album is region-blocked or unavailable.`,
+                                        fields: [
+                                            {
+                                                name: '🌍 Region Restriction',
+                                                value: `**This content cannot be accessed via Spotify API.**\n\n` +
+                                                       `**Common reasons:**\n` +
+                                                       `• Geographic/regional restrictions\n` +
+                                                       `• Playlist is private or deleted\n` +
+                                                       `• Editorial playlists (Today's Top Hits, etc.) are region-locked\n` +
+                                                       `• Album removed from Spotify`,
+                                                inline: false
+                                            },
+                                            {
+                                                name: '💡 Alternative Solutions',
+                                                value: `• **Copy the playlist to your own Spotify account** and share that URL\n` +
+                                                       `• Use individual track links instead\n` +
+                                                       `• Search by name: \`/play [song name]\`\n` +
+                                                       `• Use YouTube playlist URLs\n` +
+                                                       `• Try a different Spotify playlist`,
+                                                inline: false
+                                            },
+                                            {
+                                                name: '📝 Note',
+                                                value: `Spotify editorial playlists (IDs starting with \`37i9dQZ...\`) often have API restrictions. User-created playlists work better!`,
+                                                inline: false
+                                            }
+                                        ],
+                                        footer: { text: `Error: ${error.message}` }
+                                    }]
+                                });
+                            }
+                            
+                            // Show generic error for other failures
                             return interaction.editReply({
                                 embeds: [{
                                     color: client.config.colors.error,
-                                    title: `${client.config.emojis.error} Spotify Plugin Not Available`,
-                                    description: `Unable to load Spotify playlists because the Spotify plugin is not configured on this Lavalink server.`,
+                                    title: `${client.config.emojis.error} Failed to Convert Spotify Playlist`,
+                                    description: `Unable to convert this Spotify playlist to YouTube.`,
                                     fields: [
                                         {
-                                            name: '⚠️ Automatic conversion failed',
-                                            value: `${error.message}. Try using individual track URLs or ask bot owner to configure Spotify plugin.`,
+                                            name: '⚠️ Error Details',
+                                            value: error.message,
                                             inline: false
                                         },
                                         {
@@ -302,7 +354,7 @@ export default {
                                                    `• Ask the bot owner to enable Spotify plugin`
                                         }
                                     ],
-                                    footer: { text: 'Playlists require platform-specific plugins to function' }
+                                    footer: { text: 'Spotify conversion failed' }
                                 }]
                             });
                         }
@@ -335,24 +387,131 @@ export default {
                         });
                     }
                 } else {
-                    // For single tracks, try YouTube fallback
-                    console.log('Trying YouTube fallback for single track...'.yellow);
-                    
-                    // Extract basic search query from URL (this is a simple fallback)
-                    const searchQuery = query.split('/').pop().split('?')[0].replace(/-|_/g, ' ');
-                    
-                    try {
-                        res = await node.search({ 
-                            query: searchQuery,
-                            source: 'ytsearch'
-                        }, interaction.user);
+                    // For single Spotify tracks, try API conversion
+                    if (originalPlatform === 'Spotify' && client.config.spotify.clientId && client.config.spotify.clientSecret) {
+                        console.log('Attempting to convert Spotify track to YouTube...'.yellow);
                         
-                        if (res?.tracks?.length) {
-                            usedFallback = true;
-                            console.log(`Found results on YouTube using: ${searchQuery}`.green);
+                        try {
+                            // Extract track ID from URL
+                            const trackId = query.match(/track\/([a-zA-Z0-9]+)/)?.[1];
+                            
+                            if (trackId) {
+                                // Get Spotify access token
+                                const credentials = Buffer.from(`${client.config.spotify.clientId}:${client.config.spotify.clientSecret}`).toString('base64');
+                                const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/x-www-form-urlencoded',
+                                        'Authorization': `Basic ${credentials}`
+                                    },
+                                    body: 'grant_type=client_credentials'
+                                });
+                                
+                                if (tokenResponse.ok) {
+                                    const tokenData = await tokenResponse.json();
+                                    
+                                    // Fetch track data from Spotify API
+                                    const trackUrl = `https://api.spotify.com/v1/tracks/${trackId}`;
+                                    const trackResponse = await fetch(trackUrl, {
+                                        headers: {
+                                            'Authorization': `Bearer ${tokenData.access_token}`
+                                        }
+                                    });
+                                    
+                                    if (trackResponse.ok) {
+                                        const trackData = await trackResponse.json();
+                                        const artists = trackData.artists?.map(a => a.name).join(', ') || 'Unknown Artist';
+                                        const searchQuery = `${artists} - ${trackData.name}`;
+                                        
+                                        console.log(`Searching YouTube for: ${searchQuery}`.cyan);
+                                        
+                                        // Search on YouTube
+                                        res = await node.search({ 
+                                            query: searchQuery,
+                                            source: 'ytsearch'
+                                        }, interaction.user);
+                                        
+                                        if (res?.tracks?.length) {
+                                            usedFallback = true;
+                                            console.log(`Successfully converted Spotify track to YouTube!`.green);
+                                        }
+                                    } else if (trackResponse.status === 404) {
+                                        // Track is region-blocked or not found
+                                        console.log(`Spotify track is region-blocked or unavailable (404)`.red);
+                                        return interaction.editReply({
+                                            embeds: [{
+                                                color: client.config.colors.error,
+                                                title: `${client.config.emojis.error} Spotify Track Not Available`,
+                                                description: `This Spotify track is region-blocked or unavailable.`,
+                                                fields: [
+                                                    {
+                                                        name: '🌍 Region Restriction',
+                                                        value: `This track cannot be accessed in your region via Spotify API.\n\n` +
+                                                               `**Possible reasons:**\n` +
+                                                               `• Geographic/regional restrictions\n` +
+                                                               `• Track has been removed from Spotify\n` +
+                                                               `• Track requires premium/specific subscription\n` +
+                                                               `• API access limitations`,
+                                                        inline: false
+                                                    },
+                                                    {
+                                                        name: '💡 Alternative Solutions',
+                                                        value: `• Try searching by name: \`/play [artist name - song name]\`\n` +
+                                                               `• Use a YouTube link instead\n` +
+                                                               `• Try a different Spotify track`,
+                                                        inline: false
+                                                    }
+                                                ],
+                                                footer: { text: 'Error 404: Resource not found' }
+                                            }]
+                                        });
+                                    } else if (trackResponse.status === 403) {
+                                        // Access restricted
+                                        console.log(`Spotify track access restricted (403)`.red);
+                                        return interaction.editReply({
+                                            embeds: [{
+                                                color: client.config.colors.error,
+                                                title: `${client.config.emojis.error} Access Restricted`,
+                                                description: `Access to this Spotify track is restricted.`,
+                                                fields: [
+                                                    {
+                                                        name: '💡 Try Instead',
+                                                        value: `• Search by name: \`/play [song name]\`\n` +
+                                                               `• Use a YouTube link`,
+                                                        inline: false
+                                                    }
+                                                ],
+                                                footer: { text: 'Error 403: Forbidden' }
+                                            }]
+                                        });
+                                    }
+                                }
+                            }
+                        } catch (error) {
+                            console.log(`Spotify track conversion failed: ${error.message}`.red);
                         }
-                    } catch (fallbackError) {
-                        console.log(`YouTube fallback failed: ${fallbackError.message}`.red);
+                    }
+                    
+                    // If Spotify conversion didn't work or not Spotify, try generic fallback
+                    if (!res?.tracks?.length) {
+                        console.log('Trying YouTube fallback for single track...'.yellow);
+                        
+                        // Extract basic search query from URL (this is a simple fallback)
+                        const searchQuery = query.split('/').pop().split('?')[0].replace(/-|_/g, ' ');
+                        
+                        try {
+                            res = await node.search({ 
+                                query: searchQuery,
+                                source: 'ytsearch'
+                            }, interaction.user);
+                            
+                            if (res?.tracks?.length) {
+                                usedFallback = true;
+                                console.log(`Found results on YouTube using: ${searchQuery}`.green);
+                            }
+                        } catch (fallbackError) {
+                            console.log(`YouTube fallback failed: ${fallbackError.message}`.red);
+                        }
                     }
                 }
             }
@@ -402,7 +561,10 @@ export default {
                     retries++;
                 }
                 
-                // Send playlist confirmation first
+                // Store the text channel for trackStart event to use
+                player.set('currentTextChannel', interaction.channel);
+                
+                // Send playlist confirmation only - trackStart event will send Now Playing
                 await interaction.editReply({
                     embeds: [{
                         color: client.config.colors.success,
@@ -410,19 +572,6 @@ export default {
                         thumbnail: { url: res.tracks[0]?.info?.artworkUrl }
                     }]
                 });
-                
-                // Then send Now Playing message
-                if (player.queue.current) {
-                    const nowPlayingEmbed = createNowPlayingEmbed(player, client);
-                    const nowPlayingButtons = createNowPlayingButtons(player, client);
-                    
-                    const message = await interaction.followUp({
-                        embeds: [nowPlayingEmbed],
-                        components: nowPlayingButtons
-                    });
-                    
-                    player.nowPlayingMessage = message;
-                }
             } else {
                 await interaction.editReply({
                     embeds: [{
@@ -457,6 +606,9 @@ export default {
             console.log('─────────────────────────────────────'.cyan);
             
             if (isFirstTrack) {
+                // Store the text channel for trackStart event to use
+                player.set('currentTextChannel', interaction.channel);
+                
                 // Start playing only if nothing is currently playing
                 await player.play();
                 
@@ -467,41 +619,25 @@ export default {
                     retries++;
                 }
                 
-                // Check if track started successfully
-                if (player.queue.current) {
-                    // Show rich now playing interface
-                    const nowPlayingEmbed = createNowPlayingEmbed(player, client);
-                    const nowPlayingButtons = createNowPlayingButtons(player, client);
-                    
-                    // Add fallback warning if used
-                    if (usedFallback && originalPlatform) {
-                        nowPlayingEmbed.addFields({
-                            name: '⚠️ Fallback Used',
-                            value: `${originalPlatform} plugin is not available. Playing from YouTube instead.`,
-                            inline: false
-                        });
-                    }
-                    
-                    const message = await interaction.editReply({
-                        embeds: [nowPlayingEmbed],
-                        components: nowPlayingButtons
-                    });
-                    
-                    // Store the message reference for future edits
-                    player.nowPlayingMessage = message;
-                } else {
-                    // Fallback: Track info from what we added
-                    const message = await interaction.editReply({
-                        embeds: [{
-                            color: client.config.colors.success,
-                            description: `${client.config.emojis.play} **Now Playing:**\n**[${track.info.title}](${track.info.uri})**\n\nBy: ${track.info.author}`,
-                            thumbnail: { url: track.info.artworkUrl }
-                        }]
-                    });
-                    
-                    // Store the message reference for future edits
-                    player.nowPlayingMessage = message;
+                // Send simple confirmation - trackStart event will send full Now Playing message
+                const confirmEmbed = {
+                    color: client.config.colors.success,
+                    description: `${client.config.emojis.play} **Starting playback...**\n**[${track.info.title}](${track.info.uri})**`,
+                    thumbnail: { url: track.info.artworkUrl }
+                };
+                
+                // Add fallback warning if used
+                if (usedFallback && originalPlatform) {
+                    confirmEmbed.fields = [{
+                        name: '⚠️ Fallback Used',
+                        value: `${originalPlatform} plugin is not available. Playing from YouTube instead.`,
+                        inline: false
+                    }];
                 }
+                
+                await interaction.editReply({
+                    embeds: [confirmEmbed]
+                });
             } else {
                 const queueEmbed = {
                     color: client.config.colors.success,

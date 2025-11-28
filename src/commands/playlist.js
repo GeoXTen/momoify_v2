@@ -281,6 +281,8 @@ async function handlePlay(interaction, client) {
         
         // Start playing if not already
         if (!player.playing && !player.paused) {
+            // Store the text channel for trackStart event to use
+            player.set('currentTextChannel', interaction.channel);
             await player.play();
         }
         

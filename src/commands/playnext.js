@@ -98,6 +98,8 @@ export default {
             });
             
             if (!player.playing) {
+                // Store the text channel for trackStart event to use
+                player.set('currentTextChannel', interaction.channel);
                 await player.play();
             }
         } else {
@@ -115,6 +117,8 @@ export default {
             });
             
             if (!player.playing) {
+                // Store the text channel for trackStart event to use
+                player.set('currentTextChannel', interaction.channel);
                 await player.play();
             }
         }
