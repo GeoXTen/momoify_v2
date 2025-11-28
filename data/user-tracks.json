@@ -150,6 +150,24 @@
         "artist": "Kotori",
         "playCount": 2,
         "totalMinutes": 6
+      },
+      "thechainsmokerscloserlyricfthalseythechainsmokers": {
+        "title": "The Chainsmokers - Closer (Lyric) ft. Halsey",
+        "artist": "The Chainsmokers",
+        "playCount": 1,
+        "totalMinutes": 4
+      },
+      "thechainsmokersparisofficiallyricvideothechainsmokers": {
+        "title": "The Chainsmokers - Paris (Official Lyric Video)",
+        "artist": "The Chainsmokers",
+        "playCount": 1,
+        "totalMinutes": 3
+      },
+      "thechainsmokerscloserofficialvideofthalseythechainsmokers": {
+        "title": "The Chainsmokers - Closer (Official Video) ft. Halsey",
+        "artist": "The Chainsmokers",
+        "playCount": 2,
+        "totalMinutes": 8
       }
     }
   }

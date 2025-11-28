@@ -24,6 +24,46 @@ function formatUptime(seconds) {
     return `${minutes}m`;
 }
 
+async function handleStopConversion(interaction, guildId, client) {
+    try {
+        await interaction.deferUpdate();
+        
+        const player = client.lavalink.getPlayer(guildId);
+        
+        if (!player) {
+            return interaction.followUp({
+                embeds: [{
+                    color: client.config.colors.error,
+                    description: `${client.config.emojis.error} No active player found!`
+                }],
+                ephemeral: true
+            });
+        }
+        
+        // Set the flag to stop background conversion
+        player.set('backgroundConversion', false);
+        console.log(`User manually stopped background conversion for guild ${guildId}`.yellow);
+        
+        await interaction.followUp({
+            embeds: [{
+                color: client.config.colors.warning,
+                description: `⏹️ Background conversion will stop after the current track...`
+            }],
+            ephemeral: true
+        });
+        
+    } catch (error) {
+        console.error('Error stopping conversion:', error);
+        await interaction.followUp({
+            embeds: [{
+                color: client.config.colors.error,
+                description: `${client.config.emojis.error} Failed to stop conversion!`
+            }],
+            ephemeral: true
+        }).catch(() => {});
+    }
+}
+
 export async function handleButtonInteraction(interaction, client) {
     // Handle both buttons and select menus
     if (!interaction.isButton() && !interaction.isStringSelectMenu()) return;
@@ -48,6 +88,11 @@ export async function handleButtonInteraction(interaction, client) {
     // Handle search result selection (no player needed yet)
     if (action === 'search') {
         return handleSearchButton(interaction, args, client);
+    }
+    
+    // Handle stop conversion button
+    if (action === 'stop' && args[0] === 'conversion') {
+        return handleStopConversion(interaction, args[1], client);
     }
     
     // Handle quote removal button
@@ -416,6 +461,13 @@ async function handleNowPlayingButton(interaction, player, action, client) {
                 await interaction.deferReply();
             }
             
+            // Cancel any background conversion in progress
+            const isConverting = player.get('backgroundConversion');
+            if (isConverting) {
+                player.set('backgroundConversion', false); // Signal to stop conversion
+                console.log('Cancelled background Spotify conversion (via button)'.yellow);
+            }
+            
             // Clear voice channel status before destroying
             try {
                 await client.rest.put(
@@ -427,10 +479,16 @@ async function handleNowPlayingButton(interaction, player, action, client) {
             }
             
             await player.destroy();
+            
+            // Show different message if conversion was also stopped
+            const stopMessage = isConverting 
+                ? `${client.config.emojis.stop} ⏹️ **Stopped the music and cleared the queue**\n\n⏹️ Background Spotify conversion also cancelled.\n\nThe player has been destroyed.`
+                : `${client.config.emojis.stop} ⏹️ **Stopped the music and cleared the queue**\n\nThe player has been destroyed.`;
+            
             await interaction.editReply({
                 embeds: [{
                     color: client.config.colors.error,
-                    description: `${client.config.emojis.stop} ⏹️ **Stopped the music and cleared the queue**\n\nThe player has been destroyed.`
+                    description: stopMessage
                 }],
                 components: []
             });

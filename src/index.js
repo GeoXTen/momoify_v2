@@ -484,7 +484,7 @@ client.lavalink.on('trackStart', async (player, track, payload) => {
             // Send compact message in a box/container style
             const message = await textChannel.send({
                 embeds: [{
-                    color: 0x1DB954, // Spotify green
+                    color: 0xFF8C00, // Orange (matching bot's primary color)
                     description: `${sourceEmoji} Started playing **[${track.info.title}](${track.info.uri})** by **${track.info.author}**`
                 }]
             });

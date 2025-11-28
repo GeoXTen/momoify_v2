@@ -195,13 +195,38 @@ export default {
                             }
                             
                             const playlistData = await spotifyResponse.json();
-                            const tracks = isAlbum ? playlistData.tracks.items : playlistData.tracks.items.map(item => item.track);
+                            let tracks = isAlbum ? playlistData.tracks.items : playlistData.tracks.items.map(item => item.track);
+                            
+                            // Spotify API returns max 100 tracks per request - fetch additional pages if needed
+                            let nextUrl = playlistData.tracks.next;
+                            let totalFetched = tracks.length;
+                            
+                            while (nextUrl) {
+                                console.log(`Fetching additional tracks... (${totalFetched} so far)`.cyan);
+                                
+                                const nextResponse = await fetch(nextUrl, {
+                                    headers: {
+                                        'Authorization': `Bearer ${accessToken}`
+                                    }
+                                });
+                                
+                                if (nextResponse.ok) {
+                                    const nextData = await nextResponse.json();
+                                    const nextTracks = isAlbum ? nextData.items : nextData.items.map(item => item.track);
+                                    tracks = tracks.concat(nextTracks);
+                                    totalFetched = tracks.length;
+                                    nextUrl = nextData.next;
+                                } else {
+                                    console.log(`Failed to fetch additional tracks: ${nextResponse.status}`.yellow);
+                                    break;
+                                }
+                            }
                             
                             if (!tracks || tracks.length === 0) {
                                 throw new Error('No tracks found in playlist');
                             }
                             
-                            console.log(`Found ${tracks.length} tracks in Spotify playlist`.green);
+                            console.log(`Found ${tracks.length} tracks in Spotify playlist (across ${Math.ceil(tracks.length / 100)} pages)`.green);
                             
                             // Update status
                             await interaction.editReply({
@@ -222,6 +247,7 @@ export default {
                             
                             // Quick start: Convert first 10 tracks immediately, then continue in background
                             const quickStartLimit = Math.min(10, maxTracks);
+                            let isQuickStartComplete = false;
                             
                             await interaction.editReply({
                                 embeds: [{
@@ -303,7 +329,16 @@ export default {
                                     await player.play();
                                 }
                                 
-                                // Show "now playing" message
+                                // Show "now playing" message with stop conversion button
+                                const stopButton = new (await import('discord.js')).ActionRowBuilder()
+                                    .addComponents(
+                                        new (await import('discord.js')).ButtonBuilder()
+                                            .setCustomId(`stop_conversion_${interaction.guildId}`)
+                                            .setLabel('Stop Conversion')
+                                            .setEmoji('⏹️')
+                                            .setStyle((await import('discord.js')).ButtonStyle.Danger)
+                                    );
+                                
                                 await interaction.editReply({
                                     embeds: [{
                                         color: client.config.colors.success,
@@ -325,7 +360,8 @@ export default {
                                             }
                                         ],
                                         thumbnail: { url: playlistData.images?.[0]?.url }
-                                    }]
+                                    }],
+                                    components: [stopButton]
                                 });
                                 
                                 // Phase 2: Background conversion - Continue converting remaining tracks
@@ -338,7 +374,9 @@ export default {
                                     
                                     for (let i = quickStartLimit; i < maxTracks; i++) {
                                         // Check if conversion should be cancelled (player destroyed or stopped)
-                                        if (!player.connected || player.get('backgroundConversion') === false) {
+                                        // Try to get the player again to check if it still exists
+                                        const currentPlayer = client.lavalink.getPlayer(interaction.guildId);
+                                        if (!currentPlayer || !currentPlayer.connected || currentPlayer.get('backgroundConversion') === false) {
                                             console.log(`Background conversion cancelled at track ${i + 1}/${maxTracks}`.yellow);
                                             await interaction.editReply({
                                                 embeds: [{
@@ -354,7 +392,8 @@ export default {
                                                             inline: false
                                                         }
                                                     ]
-                                                }]
+                                                }],
+                                                components: [] // Remove button when cancelled
                                             }).catch(() => {});
                                             return;
                                         }
@@ -367,6 +406,15 @@ export default {
                                         
                                         // Update progress every 20 tracks
                                         if ((i + 1) % 20 === 0) {
+                                            const progressStopButton = new (await import('discord.js')).ActionRowBuilder()
+                                                .addComponents(
+                                                    new (await import('discord.js')).ButtonBuilder()
+                                                        .setCustomId(`stop_conversion_${interaction.guildId}`)
+                                                        .setLabel('Stop Conversion')
+                                                        .setEmoji('⏹️')
+                                                        .setStyle((await import('discord.js')).ButtonStyle.Danger)
+                                                );
+                                            
                                             await interaction.editReply({
                                                 embeds: [{
                                                     color: client.config.colors.primary,
@@ -383,7 +431,8 @@ export default {
                                                             inline: false
                                                         }
                                                     ]
-                                                }]
+                                                }],
+                                                components: [progressStopButton]
                                             }).catch(() => {});
                                         }
                                     }
@@ -433,7 +482,8 @@ export default {
                                             description: `**${playlistData.name}**`,
                                             fields: finalEmbedFields,
                                             thumbnail: { url: playlistData.images?.[0]?.url }
-                                        }]
+                                        }],
+                                        components: [] // Remove button when done
                                     }).catch(() => {});
                                 })();
                                 
