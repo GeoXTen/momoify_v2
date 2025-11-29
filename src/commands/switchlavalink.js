@@ -162,7 +162,7 @@ export default {
             color: client.config.colors.primary,
             title: `${e.loading} Testing Lavalink Servers...`,
             description: `${e.server} Testing ${SERVERS.length} servers...\n${e.time} This may take a moment...`,
-            footer: { text: 'v2.2.0 | Switch Lavalink' },
+            footer: { text: 'v2.2.5 | Switch Lavalink' },
             timestamp: new Date()
         };
         
@@ -215,7 +215,7 @@ export default {
                 title: `${e.error} No Servers Available`,
                 description: `${e.warning} No Lavalink servers are currently online.\n\n` +
                            `${e.info} Please try again later or check your network connection.`,
-                footer: { text: 'v2.2.0 | Switch Lavalink' },
+                footer: { text: 'v2.2.5 | Switch Lavalink' },
                 timestamp: new Date()
             };
             
@@ -232,7 +232,7 @@ export default {
             .setDescription(`${e.checkmark} Found **${topServers.length}** working servers\n\n` +
                           `${e.info} **Current Server:** \`${currentServer}\`\n\n` +
                           `${e.bulb} Select a server from the dropdown menu below to switch:`)
-            .setFooter({ text: 'v2.2.0 | Switch Lavalink' })
+            .setFooter({ text: 'v2.2.5 | Switch Lavalink' })
             .setTimestamp();
         
         // Add fields for each server

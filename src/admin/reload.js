@@ -2,7 +2,7 @@ import { EmbedBuilder } from 'discord.js';
 
 export default {
     name: 'reload',
-    description: 'Reload commands without restarting - v2.2.0 (Owner only)',
+    description: 'Reload commands without restarting - v2.2.5 (Owner only)',
     ownerOnly: true,
     
     async execute(message, args, client) {
@@ -25,7 +25,7 @@ export default {
                         inline: false
                     }
                 )
-                .setFooter({ text: 'v2.2.0 | Reload Command' })
+                .setFooter({ text: 'v2.2.5 | Reload Command' })
                 .setTimestamp();
             
             return message.reply({ embeds: [embed] });
@@ -86,7 +86,7 @@ export default {
                     });
                 }
                 
-                embed.setFooter({ text: 'v2.2.0 | Reload All' });
+                embed.setFooter({ text: 'v2.2.5 | Reload All' });
                 embed.setTimestamp();
                 
                 await statusMsg.edit({ content: null, embeds: [embed] });
@@ -103,7 +103,7 @@ export default {
                             value: `Use \`-reload all\` to see available commands.`,
                             inline: false
                         })
-                        .setFooter({ text: 'v2.2.0 | Reload Command' })
+                        .setFooter({ text: 'v2.2.5 | Reload Command' })
                         .setTimestamp();
                     
                     return message.reply({ embeds: [embed] });
@@ -144,7 +144,7 @@ export default {
                         value: `└─ Command: \`${commandName}\`\n└─ Time: **${reloadTime}ms**\n└─ Status: ${e.verified} Ready to use`,
                         inline: false
                     })
-                    .setFooter({ text: 'v2.2.0 | Reload Command' })
+                    .setFooter({ text: 'v2.2.5 | Reload Command' })
                     .setTimestamp();
                 
                 await statusMsg.edit({ content: null, embeds: [embed] });
@@ -161,7 +161,7 @@ export default {
                     value: 'Check console for detailed error logs.',
                     inline: false
                 })
-                .setFooter({ text: 'v2.2.0 | Reload Error' })
+                .setFooter({ text: 'v2.2.5 | Reload Error' })
                 .setTimestamp();
             
             await message.reply({ embeds: [embed] });

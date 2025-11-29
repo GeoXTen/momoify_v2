@@ -14,7 +14,7 @@ export default {
         const embed = new EmbedBuilder()
             .setColor(client.config.colors.error)
             .setTitle(`${e.shield} Admin Commands Panel`)
-            .setDescription(`${e.control} **Owner-Only Access** • v2.2.0`)
+            .setDescription(`${e.control} **Owner-Only Access** • v2.2.5`)
             .addFields(
                 {
                     name: `${e.gear} Command Registration`,
@@ -53,7 +53,7 @@ export default {
                     inline: false
                 },
                 {
-                    name: `${e.checkmark} 🆕 v2.2.0 Features`,
+                    name: `${e.checkmark} 🆕 v2.2.5 Features`,
                     value: `${e.lock} \`/lockcommands\` - Lock bot to owner only\n` +
                            `${e.chart} Enhanced stats with lock status\n` +
                            `${e.shield} Improved error tracking\n` +
@@ -73,7 +73,7 @@ export default {
                 }
             )
             .setFooter({ 
-                text: `Total Commands: ${commandList.length} | Version: v2.2.0 | Owner: ${message.author.tag}`,
+                text: `Total Commands: ${commandList.length} | Version: v2.2.5 | Owner: ${message.author.tag}`,
                 iconURL: client.user.displayAvatarURL()
             })
             .setTimestamp();

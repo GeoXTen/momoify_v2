@@ -2,7 +2,7 @@ import { EmbedBuilder } from 'discord.js';
 
 export default {
     name: 'lavalink',
-    description: 'Show Lavalink node status - v2.2.0 (Owner only)',
+    description: 'Show Lavalink node status - v2.2.5 (Owner only)',
     ownerOnly: true,
     
     async execute(message, args, client) {
@@ -18,7 +18,7 @@ export default {
                 .setColor(client.config.colors.error)
                 .setTitle(`${e.error} No Lavalink Nodes`)
                 .setDescription('No Lavalink nodes found!')
-                .setFooter({ text: 'v2.2.0 | Lavalink Status' })
+                .setFooter({ text: 'v2.2.5 | Lavalink Status' })
                 .setTimestamp();
             
             return await message.reply({ embeds: [embed] });
@@ -28,7 +28,7 @@ export default {
             .setColor(client.config.colors.primary)
             .setTitle(`${e.server} Lavalink Status Dashboard`)
             .setDescription(`${e.control} Monitoring ${nodes.length} node(s)`)
-            .setFooter({ text: `v2.2.0 | Updated` })
+            .setFooter({ text: `v2.2.5 | Updated` })
             .setTimestamp();
         
         let nodeFields = [];

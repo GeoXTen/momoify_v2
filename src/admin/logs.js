@@ -47,7 +47,7 @@ export default {
                         inline: false
                     }
                 )
-                .setFooter({ text: 'v2.2.0 | Max lines: 200' })
+                .setFooter({ text: 'v2.2.5 | Max lines: 200' })
                 .setTimestamp();
             
             return message.reply({ embeds: [embed] });
@@ -79,7 +79,7 @@ export default {
                         value: `\`${validTypes.join('`, `')}\``,
                         inline: false
                     })
-                    .setFooter({ text: 'v2.2.0 | Logs Command' })
+                    .setFooter({ text: 'v2.2.5 | Logs Command' })
                     .setTimestamp();
                 
                 return message.reply({ embeds: [embed] });
@@ -94,7 +94,7 @@ export default {
                     .setTitle(`${e.info} Empty Log File`)
                     .setDescription(`${e.cloudnote} The \`${logType}\` log file is empty.\n\n` +
                                   `${e.checkmark} This is normal if no ${logType === 'error' ? 'errors have occurred' : 'logs have been generated'} yet.`)
-                    .setFooter({ text: 'v2.2.0 | Logs Command' })
+                    .setFooter({ text: 'v2.2.5 | Logs Command' })
                     .setTimestamp();
                 
                 return message.reply({ embeds: [embed] });

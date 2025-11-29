@@ -23,7 +23,7 @@ export default {
             .setColor(client.config.colors.primary)
             .setTitle(`${client.config.emojis.info} About ${client.config.botName}`)
             .setDescription(
-                `**${client.config.botName} v2.2.1**\n` +
+                `**${client.config.botName} v2.2.5**\n` +
                 `**Created by GeoNFs**\n\n` +
                 `${client.config.emojis.note1} **Features:**\n` +
                 `${client.config.emojis.checkmark} High-quality audio streaming\n` +
@@ -72,7 +72,7 @@ export default {
                 }
             )
             .setFooter({ 
-                text: `Made with ❤️ by GeoNFs • Version 2.2.1`,
+                text: `Made with ❤️ by GeoNFs • Version 2.2.5`,
                 iconURL: client.user.displayAvatarURL()
             })
             .setTimestamp();

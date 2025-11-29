@@ -88,7 +88,7 @@ export default {
             .setColor(client.config.colors.primary)
             .setTitle(`${e.rocket} Lavalink Server Test Results`)
             .setDescription('Testing server connections and performance...')
-            .setFooter({ text: 'v2.2.0 | Server Test' })
+            .setFooter({ text: 'v2.2.5 | Server Test' })
             .setTimestamp();
         
         let testResults = [];
@@ -209,7 +209,7 @@ export default {
                 .setColor(client.config.colors.primary)
                 .setTitle(`${e.rocket} Lavalink Server Test Results (continued)`)
                 .addFields(...remainingFields.slice(0, maxFieldsPerEmbed))
-                .setFooter({ text: 'v2.2.0 | Server Test' })
+                .setFooter({ text: 'v2.2.5 | Server Test' })
                 .setTimestamp();
             
             await message.channel.send({ embeds: [additionalEmbed] });

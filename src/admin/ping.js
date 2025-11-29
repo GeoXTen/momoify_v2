@@ -2,7 +2,7 @@ import { EmbedBuilder } from 'discord.js';
 
 export default {
     name: 'ping',
-    description: 'Check bot latency - v2.2.0 (Owner only)',
+    description: 'Check bot latency - v2.2.5 (Owner only)',
     ownerOnly: true,
     
     async execute(message, args, client) {
@@ -101,7 +101,7 @@ export default {
             });
         }
         
-        embed.setFooter({ text: 'v2.2.0 | Latency Check Complete' });
+        embed.setFooter({ text: 'v2.2.5 | Latency Check Complete' });
         embed.setTimestamp();
         
         await sent.edit({ content: null, embeds: [embed] });

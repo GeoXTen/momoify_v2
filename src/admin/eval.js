@@ -3,7 +3,7 @@ import { EmbedBuilder } from 'discord.js';
 
 export default {
     name: 'eval',
-    description: 'Execute JavaScript code - v2.2.0 (Owner only)',
+    description: 'Execute JavaScript code - v2.2.5 (Owner only)',
     ownerOnly: true,
     
     async execute(message, args, client) {
@@ -28,7 +28,7 @@ export default {
                         inline: false
                     }
                 )
-                .setFooter({ text: 'v2.2.0 | Owner Command' })
+                .setFooter({ text: 'v2.2.5 | Owner Command' })
                 .setTimestamp();
             
             return message.reply({ embeds: [embed] });
@@ -77,7 +77,7 @@ export default {
                         inline: false
                     }
                 )
-                .setFooter({ text: 'v2.2.0 | Eval Command' })
+                .setFooter({ text: 'v2.2.5 | Eval Command' })
                 .setTimestamp();
             
             await message.reply({ embeds: [embed] });
@@ -100,7 +100,7 @@ export default {
                         inline: false
                     }
                 )
-                .setFooter({ text: 'v2.2.0 | Eval Command' })
+                .setFooter({ text: 'v2.2.5 | Eval Command' })
                 .setTimestamp();
             
             await message.reply({ embeds: [embed] });

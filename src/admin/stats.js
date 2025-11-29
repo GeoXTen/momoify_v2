@@ -48,7 +48,7 @@ export default {
         const embed = new EmbedBuilder()
             .setColor(client.config.colors.primary)
             .setTitle(`${e.stats_icon} Bot Statistics Dashboard`)
-            .setDescription(`${e.shield} v2.2.0 • ${client.config.botName}`)
+            .setDescription(`${e.shield} v2.2.5 • ${client.config.botName}`)
             .addFields(
                 {
                     name: `${e.time} System Uptime`,
@@ -89,7 +89,7 @@ export default {
                     inline: false
                 },
                 {
-                    name: `${e.checkmark} v2.2.0 Features`,
+                    name: `${e.checkmark} v2.2.5 Features`,
                     value: `${e.lock} Command locking (${lockedGuilds} active)\n` +
                            `${e.rocket} Smart autoplay (no duplicates)\n` +
                            `${e.shield} Enhanced error handling\n` +
@@ -97,7 +97,7 @@ export default {
                     inline: false
                 }
             )
-            .setFooter({ text: `v2.2.0 | ${client.config.botName}` })
+            .setFooter({ text: `v2.2.5 | ${client.config.botName}` })
             .setTimestamp();
         
         await message.reply({ embeds: [embed] });

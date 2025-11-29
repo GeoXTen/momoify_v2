@@ -7,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default {
     name: 'printah',
-    description: 'Register slash commands - v2.2.0 (Owner only)',
+    description: 'Register slash commands - v2.2.5 (Owner only)',
     ownerOnly: true,
     
     async execute(message, args, client) {
@@ -57,7 +57,7 @@ export default {
                             value: `\`-printah g\` or \`-printah guild <id>\``,
                             inline: false
                         })
-                        .setFooter({ text: 'v2.2.0 | Command Registration' })
+                        .setFooter({ text: 'v2.2.5 | Command Registration' })
                         .setTimestamp();
                     
                     return await statusMsg.edit({ content: null, embeds: [embed] });
@@ -91,12 +91,12 @@ export default {
                 }
                 
                 embed.addFields({
-                    name: `${e.stars} v2.2.0 Features`,
+                    name: `${e.stars} v2.2.5 Features`,
                     value: `${e.lock} /lockcommands - Access control\n${e.rocket} Smart autoplay (no duplicates)\n${e.shield} Enhanced error handling`,
                     inline: false
                 });
                 
-                embed.setFooter({ text: 'v2.2.0 | Guild Registration' });
+                embed.setFooter({ text: 'v2.2.5 | Guild Registration' });
                 embed.setTimestamp();
                 
                 await statusMsg.edit({ content: null, embeds: [embed] });
@@ -135,13 +135,13 @@ export default {
                         inline: false
                     },
                     {
-                        name: `${e.stars} v2.2.0 Features`,
+                        name: `${e.stars} v2.2.5 Features`,
                         value: `${e.lock} /lockcommands - Owner access control\n${e.rocket} Smart autoplay (no duplicates)\n${e.shield} Enhanced error handling & recovery`,
                         inline: false
                     }
                 );
                 
-                embed.setFooter({ text: 'v2.2.0 | Global Registration' });
+                embed.setFooter({ text: 'v2.2.5 | Global Registration' });
                 embed.setTimestamp();
                 
                 await statusMsg.edit({ content: null, embeds: [embed] });
@@ -168,7 +168,7 @@ export default {
                         inline: false
                     }
                 )
-                .setFooter({ text: 'v2.2.0 | Registration Error' })
+                .setFooter({ text: 'v2.2.5 | Registration Error' })
                 .setTimestamp();
             
             return message.reply({ embeds: [embed] });

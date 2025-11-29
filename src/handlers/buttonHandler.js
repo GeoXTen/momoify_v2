@@ -735,7 +735,7 @@ async function handleSwitchLavalinkSelect(interaction, client) {
                     color: client.config.colors.error,
                     title: `${e.error} Session Expired`,
                     description: `${e.warning} The server selection has expired. Please run \`-switchlavalink\` again.`,
-                    footer: { text: 'v2.2.0 | Switch Lavalink' },
+                    footer: { text: 'v2.2.5 | Switch Lavalink' },
                     timestamp: new Date()
                 }],
                 components: []
@@ -749,7 +749,7 @@ async function handleSwitchLavalinkSelect(interaction, client) {
                     color: client.config.colors.error,
                     title: `${e.error} Invalid Selection`,
                     description: `${e.warning} The selected server is no longer available.`,
-                    footer: { text: 'v2.2.0 | Switch Lavalink' },
+                    footer: { text: 'v2.2.5 | Switch Lavalink' },
                     timestamp: new Date()
                 }],
                 components: []
@@ -766,7 +766,7 @@ async function handleSwitchLavalinkSelect(interaction, client) {
                            `${e.time} Latency: **${selectedServer.latency}ms**\n\n` +
                            `${e.gear} Updating configuration...\n` +
                            `${e.refresh} Restarting Lavalink connection...`,
-                footer: { text: 'v2.2.0 | Switch Lavalink' },
+                footer: { text: 'v2.2.5 | Switch Lavalink' },
                 timestamp: new Date()
             }],
             components: []
@@ -825,7 +825,7 @@ async function handleSwitchLavalinkSelect(interaction, client) {
                                `${e.checkmark} Configuration saved to \`.env\`\n` +
                                `${e.gear} Restarting bot to apply changes...\n\n` +
                                `${e.info} The bot will reconnect in ~5 seconds.`,
-                    footer: { text: 'v2.2.0 | Restarting...' },
+                    footer: { text: 'v2.2.5 | Restarting...' },
                     timestamp: new Date()
                 }],
                 components: []
@@ -869,7 +869,7 @@ async function handleSwitchLavalinkSelect(interaction, client) {
                     description: `${e.warning} **Error:** ${error.message}\n\n` +
                                `${e.info} The configuration may have been partially updated.\n` +
                                `${e.bulb} You may need to restart the bot manually.`,
-                    footer: { text: 'v2.2.0 | Switch Failed' },
+                    footer: { text: 'v2.2.5 | Switch Failed' },
                     timestamp: new Date()
                 }],
                 components: []
@@ -1296,7 +1296,7 @@ async function handleHelpButton(interaction, type, client) {
                     }
                 )
                 .setFooter({ 
-                    text: 'Admin commands are hidden from regular users • 13 commands total • v2.2.0',
+                    text: 'Admin commands are hidden from regular users • 13 commands total • v2.2.5',
                     iconURL: client.user.displayAvatarURL() 
                 });
             break;
@@ -1439,10 +1439,10 @@ async function handleHelpButton(interaction, type, client) {
                 .setColor(client.config.colors.primary)
                 .setTitle(`📖 All Commands (${totalCommands} Total${isOwner ? ' + 12 Admin' : ''})`)
                 .setDescription('**Complete command list with both formats!**\n' +
-                               '**✨ NEW in v2.2.0:** `/lockcommands` for access control, improved autoplay\n\u200B')
+                               '**✨ NEW in v2.2.5:** `/lockcommands` for access control, improved autoplay\n\u200B')
                 .addFields(...commandFields)
                 .setFooter({ 
-                    text: `v2.2.0 • Use / for autocomplete or - for faster typing • ${totalCommands} commands available${isOwner ? ' + 12 admin' : ''}`,
+                    text: `v2.2.5 • Use / for autocomplete or - for faster typing • ${totalCommands} commands available${isOwner ? ' + 12 admin' : ''}`,
                     iconURL: client.user.displayAvatarURL() 
                 });
             break;
@@ -1455,7 +1455,7 @@ async function handleHelpButton(interaction, type, client) {
                 .setColor(client.config.colors.primary)
                 .setTitle(`${client.config.emojis.melody} About ${client.config.botName}`)
                 .setDescription(
-                    `**${client.config.botName} v2.2.0**\n` +
+                    `**${client.config.botName} v2.2.5**\n` +
                     `**Created by GeoNFs • ${client.commands.size} Commands Available • Made with ❤️**\n\n` +
                     `${client.config.emojis.melody} **Bonus:** Try \`/autoplay\` or \`-ap\` for unlimited music!\n\n` +
                     `${client.config.emojis.note1} **Tips:**\n` +
@@ -1490,7 +1490,7 @@ async function handleHelpButton(interaction, type, client) {
                     }
                 )
                 .setFooter({ 
-                    text: 'Made with ❤️ by GeoNFs • Version 2.2.0',
+                    text: 'Made with ❤️ by GeoNFs • Version 2.2.5',
                     iconURL: client.user.displayAvatarURL() 
                 });
             break;
@@ -1626,7 +1626,7 @@ async function handleHelpButton(interaction, type, client) {
                     }
                 )
                 .setFooter({ 
-                    text: `v2.2.0 • ${client.commands.size} commands • All features 100% free!`,
+                    text: `v2.2.5 • ${client.commands.size} commands • All features 100% free!`,
                     iconURL: client.user.displayAvatarURL() 
                 });
             break;
