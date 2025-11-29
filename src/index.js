@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, ActivityType, Collection } from 'discord.js';
+import { Client, GatewayIntentBits, ActivityType, Collection, Events } from 'discord.js';
 import { LavalinkManager } from 'lavalink-client';
 import { readdir } from 'fs/promises';
 import { join, dirname } from 'path';
@@ -131,7 +131,7 @@ function truncateString(str, maxLength) {
     return str.substring(0, maxLength - 3) + '...';
 }
 
-client.once('ready', async () => {
+client.once(Events.ClientReady, async () => {
     console.log('\n╔═══════════════════════════════════╗'.cyan);
     console.log(`║  Bot is online as ${client.user.tag}  ║`.cyan.bold);
     console.log('╚═══════════════════════════════════╝\n'.cyan);
@@ -549,46 +549,110 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
             
             if (lastTrack) {
                 try {
-                    // Try to get YouTube related tracks first (better recommendations)
-                    let res;
-                    const identifier = lastTrack.info.identifier; // YouTube video ID
+                    const searchQuery = `${lastTrack.info.title} ${lastTrack.info.author}`;
+                    const allTracks = [];
                     
-                    if (identifier && lastTrack.info.sourceName === 'youtube') {
-                        // Use YouTube's related video feature
-                        console.log(`🔍 Getting YouTube related tracks for: ${lastTrack.info.title}`.cyan);
-                        res = await player.search(
-                            { query: `https://www.youtube.com/watch?v=${identifier}&list=RD${identifier}` },
-                            lastTrack.requester
-                        );
+                    // Search Spotify first
+                    console.log(`🔍 Searching Spotify for related tracks: ${searchQuery}`.cyan);
+                    const spotifyRes = await player.search(
+                        { query: `spsearch:${searchQuery}` },
+                        lastTrack.requester
+                    );
+                    if (spotifyRes?.tracks?.length > 0) {
+                        allTracks.push(...spotifyRes.tracks);
                     }
                     
-                    // Fallback to search if YouTube related doesn't work
-                    if (!res || !res.tracks || res.tracks.length < 5) {
-                        console.log(`🔍 Searching for related tracks: ${lastTrack.info.title}`.cyan);
-                        const searchQuery = `${lastTrack.info.title} ${lastTrack.info.author}`;
-                        res = await player.search(
-                            { query: searchQuery },
-                            lastTrack.requester
-                        );
+                    // Also search SoundCloud to get more variety
+                    console.log(`🔍 Searching SoundCloud for related tracks: ${searchQuery}`.cyan);
+                    const soundcloudRes = await player.search(
+                        { query: `scsearch:${searchQuery}` },
+                        lastTrack.requester
+                    );
+                    if (soundcloudRes?.tracks?.length > 0) {
+                        allTracks.push(...soundcloudRes.tracks);
                     }
                     
-                    if (res.tracks && res.tracks.length > 0) {
-                        // Filter out duplicates and the same song
-                        const existingTitles = new Set([
-                            lastTrack.info.title.toLowerCase(),
-                            ...player.queue.tracks.map(t => t.info.title.toLowerCase())
-                        ]);
+                    // Search Deezer
+                    console.log(`🔍 Searching Deezer for related tracks: ${searchQuery}`.cyan);
+                    const deezerRes = await player.search(
+                        { query: `dzsearch:${searchQuery}` },
+                        lastTrack.requester
+                    );
+                    if (deezerRes?.tracks?.length > 0) {
+                        allTracks.push(...deezerRes.tracks);
+                    }
+                    
+                    // Search Apple Music
+                    console.log(`🔍 Searching Apple Music for related tracks: ${searchQuery}`.cyan);
+                    const appleRes = await player.search(
+                        { query: `amsearch:${searchQuery}` },
+                        lastTrack.requester
+                    );
+                    if (appleRes?.tracks?.length > 0) {
+                        allTracks.push(...appleRes.tracks);
+                    }
+                    
+                    // Search Tidal
+                    console.log(`🔍 Searching Tidal for related tracks: ${searchQuery}`.cyan);
+                    const tidalRes = await player.search(
+                        { query: `tdsearch:${searchQuery}` },
+                        lastTrack.requester
+                    );
+                    if (tidalRes?.tracks?.length > 0) {
+                        allTracks.push(...tidalRes.tracks);
+                    }
+                    
+                    if (allTracks.length > 0) {
+                        // Helper function to normalize titles for comparison
+                        const normalizeTitle = (title) => {
+                            return title
+                                .toLowerCase()
+                                .replace(/\(.*?\)|\[.*?\]/g, '') // Remove brackets content
+                                .replace(/feat\.?|ft\.?|featuring/gi, '') // Remove feat variations
+                                .replace(/official|video|audio|lyrics|hd|hq|mv/gi, '') // Remove common words
+                                .replace(/[^a-z0-9\s]/g, '') // Remove special chars
+                                .replace(/\s+/g, ' ') // Normalize spaces
+                                .trim();
+                        };
+                        
+                        // Collect all existing tracks (current, queue, and previous)
+                        const existingTracks = [
+                            lastTrack,
+                            ...player.queue.tracks,
+                            ...player.queue.previous
+                        ];
+                        
+                        const existingNormalized = new Set();
+                        const existingKeys = new Set();
+                        const existingISRCs = new Set();
+                        
+                        for (const t of existingTracks) {
+                            if (t?.info?.title) {
+                                existingNormalized.add(normalizeTitle(t.info.title));
+                                existingKeys.add(`${normalizeTitle(t.info.title)}_${normalizeTitle(t.info.author || '')}`);
+                                if (t.info.isrc) existingISRCs.add(t.info.isrc);
+                            }
+                        }
                         
                         const uniqueTracks = [];
-                        for (const track of res.tracks) {
-                            const trackTitle = track.info.title.toLowerCase();
-                            const trackKey = `${trackTitle}_${track.info.author.toLowerCase()}`;
+                        const addedNormalized = new Set();
+                        
+                        for (const track of allTracks) {
+                            const normalizedTitle = normalizeTitle(track.info.title);
+                            const normalizedKey = `${normalizedTitle}_${normalizeTitle(track.info.author || '')}`;
+                            const isrc = track.info.isrc;
                             
-                            // Skip if it's the same song or already in queue
-                            if (!existingTitles.has(trackTitle) && !existingTitles.has(trackKey)) {
+                            // Skip if duplicate by ISRC, normalized title, or key
+                            const isDuplicate = 
+                                (isrc && existingISRCs.has(isrc)) ||
+                                existingNormalized.has(normalizedTitle) ||
+                                existingKeys.has(normalizedKey) ||
+                                addedNormalized.has(normalizedTitle);
+                            
+                            if (!isDuplicate) {
                                 uniqueTracks.push(track);
-                                existingTitles.add(trackTitle);
-                                existingTitles.add(trackKey);
+                                addedNormalized.add(normalizedTitle);
+                                if (isrc) existingISRCs.add(isrc);
                                 
                                 if (uniqueTracks.length >= 10) break;
                             }

@@ -3,7 +3,12 @@ import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'disc
 export function createNowPlayingEmbed(player, client) {
     const track = player.queue.current;
     
-    // Safety check
+    // Safety check for client
+    if (!client || !client.config) {
+        throw new Error('Client or client.config is undefined');
+    }
+    
+    // Safety check for track
     if (!track || !track.info) {
         throw new Error('No track is currently playing');
     }
