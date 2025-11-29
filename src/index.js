@@ -572,36 +572,6 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                         allTracks.push(...soundcloudRes.tracks);
                     }
                     
-                    // Search Deezer
-                    console.log(`🔍 Searching Deezer for related tracks: ${searchQuery}`.cyan);
-                    const deezerRes = await player.search(
-                        { query: `dzsearch:${searchQuery}` },
-                        lastTrack.requester
-                    );
-                    if (deezerRes?.tracks?.length > 0) {
-                        allTracks.push(...deezerRes.tracks);
-                    }
-                    
-                    // Search Apple Music
-                    console.log(`🔍 Searching Apple Music for related tracks: ${searchQuery}`.cyan);
-                    const appleRes = await player.search(
-                        { query: `amsearch:${searchQuery}` },
-                        lastTrack.requester
-                    );
-                    if (appleRes?.tracks?.length > 0) {
-                        allTracks.push(...appleRes.tracks);
-                    }
-                    
-                    // Search Tidal
-                    console.log(`🔍 Searching Tidal for related tracks: ${searchQuery}`.cyan);
-                    const tidalRes = await player.search(
-                        { query: `tdsearch:${searchQuery}` },
-                        lastTrack.requester
-                    );
-                    if (tidalRes?.tracks?.length > 0) {
-                        allTracks.push(...tidalRes.tracks);
-                    }
-                    
                     if (allTracks.length > 0) {
                         // Helper function to normalize titles for comparison
                         const normalizeTitle = (title) => {
