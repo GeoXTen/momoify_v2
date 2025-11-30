@@ -46,13 +46,17 @@ export default {
             const queueSize = player.queue.tracks.length;
             const maxSkip = queueSize + 1; // +1 for current track
             
-            // Cap amount to max available
-            const actualSkip = Math.min(amount, maxSkip);
-            const toRemove = Math.min(actualSkip - 1, queueSize);
-            
-            if (toRemove > 0) {
-                player.queue.tracks.splice(0, toRemove);
+            // Error if trying to skip more than available
+            if (amount > maxSkip) {
+                return interaction.editReply({
+                    embeds: [{
+                        color: client.config.colors.error,
+                        description: `${client.config.emojis.error} Can't skip ${amount} songs! Only ${maxSkip} available (${queueSize} in queue + current).`
+                    }]
+                });
             }
+            
+            player.queue.tracks.splice(0, amount - 1);
             await player.skip();
             
             // Wait a bit for the new track to start
@@ -64,7 +68,7 @@ export default {
                 const nowPlayingButtons = createNowPlayingButtons(player, client);
                 
                 return interaction.editReply({
-                    content: `${client.config.emojis.skip} Skipped ${actualSkip} songs!`,
+                    content: `${client.config.emojis.skip} Skipped ${amount} songs!`,
                     embeds: [nowPlayingEmbed],
                     components: nowPlayingButtons
                 });
@@ -75,14 +79,14 @@ export default {
                     return interaction.editReply({
                         embeds: [{
                             color: client.config.colors.success,
-                            description: `${client.config.emojis.skip} Skipped ${actualSkip} songs!\n\n🔄 Autoplay is searching for related tracks...`
+                            description: `${client.config.emojis.skip} Skipped ${amount} songs!\n\n🔄 Autoplay is searching for related tracks...`
                         }]
                     });
                 }
                 return interaction.editReply({
                     embeds: [{
                         color: client.config.colors.success,
-                        description: `${client.config.emojis.skip} Skipped ${actualSkip} songs!\n\nQueue is now empty.`
+                        description: `${client.config.emojis.skip} Skipped ${amount} songs!\n\nQueue is now empty.`
                     }]
                 });
             }
