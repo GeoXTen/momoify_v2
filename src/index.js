@@ -605,32 +605,30 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                         }
                     }
                     
-                    // Build search query - use genre for related songs, or artist as fallback
+                    // Build search query - combine artist with genre and year for better results
+                    const currentYear = new Date().getFullYear();
                     const searchQuery = detectedGenre 
-                        ? `${detectedGenre}` 
-                        : cleanArtist;
+                        ? `${cleanArtist} ${detectedGenre} ${currentYear}` 
+                        : `${cleanArtist} ${currentYear}`;
                     
                     console.log(`🔍 Autoplay searching for: ${searchQuery} ${detectedGenre ? `(genre: ${detectedGenre})` : '(by artist)'}`.cyan);
                     
-                    // Search Spotify
-                    const spotifyRes = await player.search(
-                        { query: `spsearch:${searchQuery}` },
+                    // Search YouTube
+                    const youtubeRes = await player.search(
+                        { query: `ytsearch:${searchQuery}` },
                         lastTrack.requester
                     );
-                    if (spotifyRes?.tracks?.length > 0) {
-                        allTracks.push(...spotifyRes.tracks);
-                    }
-                    
-                    // Search SoundCloud
-                    const soundcloudRes = await player.search(
-                        { query: `scsearch:${searchQuery}` },
-                        lastTrack.requester
-                    );
-                    if (soundcloudRes?.tracks?.length > 0) {
-                        allTracks.push(...soundcloudRes.tracks);
+                    if (youtubeRes?.tracks?.length > 0) {
+                        allTracks.push(...youtubeRes.tracks);
                     }
                     
                     if (allTracks.length > 0) {
+                        // Shuffle results to avoid promoted/unrelated tracks at top
+                        for (let i = allTracks.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [allTracks[i], allTracks[j]] = [allTracks[j], allTracks[i]];
+                        }
+                        
                         // Helper function to normalize titles for comparison
                         const normalizeTitle = (title) => {
                             return title
@@ -638,9 +636,16 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                                 .replace(/\(.*?\)|\[.*?\]/g, '') // Remove brackets content
                                 .replace(/feat\.?|ft\.?|featuring/gi, '') // Remove feat variations
                                 .replace(/official|video|audio|lyrics|hd|hq|mv/gi, '') // Remove common words
-                                .replace(/[^a-z0-9\s]/g, '') // Remove special chars
+                                .replace(/[^a-z0-9\s]/g, '') // Remove special chars (includes non-ASCII)
                                 .replace(/\s+/g, ' ') // Normalize spaces
                                 .trim();
+                        };
+                        
+                        // Extract only ASCII letters/numbers for cross-language comparison
+                        const extractCore = (title) => {
+                            return title
+                                .toLowerCase()
+                                .replace(/[^a-z0-9]/g, ''); // Only keep a-z and 0-9
                         };
                         
                         // Collect all existing tracks (current, queue, and previous)
@@ -653,12 +658,19 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                         const existingNormalized = new Set();
                         const existingKeys = new Set();
                         const existingISRCs = new Set();
+                        const existingDurations = new Map(); // artist -> [durations]
+                        const existingCores = new Set(); // For cross-language detection
                         
                         for (const t of existingTracks) {
                             if (t?.info?.title) {
                                 existingNormalized.add(normalizeTitle(t.info.title));
                                 existingKeys.add(`${normalizeTitle(t.info.title)}_${normalizeTitle(t.info.author || '')}`);
+                                existingCores.add(extractCore(t.info.title));
                                 if (t.info.isrc) existingISRCs.add(t.info.isrc);
+                                // Track duration per artist for same-song detection
+                                const artistKey = normalizeTitle(t.info.author || '');
+                                if (!existingDurations.has(artistKey)) existingDurations.set(artistKey, []);
+                                existingDurations.get(artistKey).push(t.info.duration);
                             }
                         }
                         
@@ -672,26 +684,81 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                             const titleLower = track.info.title.toLowerCase();
                             
                             // Skip songs with genre keyword in title (e.g., "dubstep mix", "lofi beats")
-                            const genreWordsToFilter = [
-                                'dubstep', 'lofi', 'lo-fi', 'lo fi', 'edm', 'house', 'trap', 
-                                'dnb', 'drum and bass', 'techno', 'trance', 'phonk', 'hardstyle',
-                                'hip hop', 'hip-hop', 'remix', 'slowed', 'reverb', 'bass boosted',
-                                'mix', 'compilation', 'playlist', 'best of', 'top 10', 'top 20',
-                                'megamix', 'nonstop', 'continuous', '1 hour', '2 hour', '10 hour'
-                            ];
-                            const hasGenreInTitle = genreWordsToFilter.some(word => titleLower.includes(word));
+                            // But allow if the artist name contains the genre (e.g., "Lofi Girl")
+                            const artistLower = cleanArtist.toLowerCase();
+                            const genreInArtistName = detectedGenre && artistLower.includes(detectedGenre.toLowerCase());
                             
-                            // Skip if duplicate by ISRC, normalized title, or key
+                            // Check if lofi genre (allow hour-long mixes and playlists for lofi)
+                            const isLofiGenre = detectedGenre && (
+                                detectedGenre.toLowerCase().includes('lofi') ||
+                                detectedGenre.toLowerCase().includes('lo-fi') ||
+                                detectedGenre.toLowerCase().includes('chillhop') ||
+                                cleanArtist.toLowerCase().includes('lofi')
+                            );
+                            
+                            const genreWordsToFilter = [
+                                // Edits/versions (always filter these)
+                                'remix', 'slowed', 'reverb', 'bass boosted', 'sped up', 'nightcore',
+                                'bootleg',
+                                // YouTube video types to filter
+                                'reaction', 'reacting', 'react', 'ranking', 'ranked', 'rating', 'rated',
+                                'review', 'reviewing', 'tier list', 'tierlist', 'breakdown',
+                                'explained', 'tutorial', 'how to', 'cover', 'karaoke',
+                                'behind the scenes', 'making of', 'documentary', 'interview',
+                                'first time', 'first listen', 'listening to', 'my thoughts',
+                                // Compilations (skip for lofi)
+                                ...(isLofiGenre ? [] : [
+                                    'compilation', 'playlist', 'best of', 'top 10', 'top 20', 'top 50',
+                                    'megamix', 'nonstop', 'continuous', 'medley', 'mix',
+                                    '1 hour', '2 hour', '10 hour', 'hours',
+                                    'extended', 'radio edit', 'club mix', 'vip mix',
+                                    'live performance', 'live at', 'live from', 'concert', 'instrumental'
+                                ])
+                            ];
+                            
+                            // Only filter genre words if genre is NOT in the artist name
+                            const genreOnlyFilter = genreInArtistName ? [] : [
+                                'dubstep', 'brostep', 'riddim', 'lofi', 'lo-fi', 'lo fi', 'chillhop',
+                                'edm', 'house', 'deep house', 'tech house', 'electro', 'electronic',
+                                'trap', 'trapstep', 'dnb', 'drum and bass', 'jungle',
+                                'techno', 'trance', 'psytrance', 'hardstyle', 'hardcore',
+                                'phonk', 'drift phonk', 'wave', 'synthwave', 'retrowave', 'vaporwave',
+                                'future bass', 'melodic bass', 'bass music', 'midtempo',
+                                'hip hop', 'hip-hop', 'hiphop', 'rap', 'r&b', 'rnb', 'soul',
+                                'rock', 'metal', 'punk', 'grunge', 'indie', 'alternative',
+                                'pop', 'jazz', 'blues', 'classical', 'country', 'reggae', 'ska',
+                                'folk', 'ambient', 'chill', 'acoustic', 'instrumental'
+                            ];
+                            
+                            const allFilters = [...genreWordsToFilter, ...genreOnlyFilter];
+                            const hasGenreInTitle = allFilters.some(word => titleLower.includes(word));
+                            
+                            // Cross-language duplicate detection
+                            const coreTitle = extractCore(track.info.title);
+                            const trackArtistKey = normalizeTitle(track.info.author || '');
+                            const trackDuration = track.info.duration;
+                            
+                            // Check if same artist has a song with similar duration (within 5 seconds)
+                            const hasSimilarDuration = existingDurations.has(trackArtistKey) &&
+                                existingDurations.get(trackArtistKey).some(d => Math.abs(d - trackDuration) < 5000);
+                            
+                            // Skip if duplicate by ISRC, normalized title, key, core title, or duration
                             const isDuplicate = 
                                 (isrc && existingISRCs.has(isrc)) ||
                                 existingNormalized.has(normalizedTitle) ||
                                 existingKeys.has(normalizedKey) ||
-                                addedNormalized.has(normalizedTitle);
+                                addedNormalized.has(normalizedTitle) ||
+                                (coreTitle.length > 3 && existingCores.has(coreTitle)) || // Cross-language check
+                                hasSimilarDuration; // Same artist + similar duration
                             
                             if (!isDuplicate && !hasGenreInTitle) {
                                 uniqueTracks.push(track);
                                 addedNormalized.add(normalizedTitle);
+                                existingCores.add(coreTitle);
                                 if (isrc) existingISRCs.add(isrc);
+                                // Add duration to existing
+                                if (!existingDurations.has(trackArtistKey)) existingDurations.set(trackArtistKey, []);
+                                existingDurations.get(trackArtistKey).push(trackDuration);
                                 
                                 if (uniqueTracks.length >= 10) break;
                             }
