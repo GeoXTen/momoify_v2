@@ -605,12 +605,12 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                         }
                     }
                     
-                    // Build search query
+                    // Build search query - use genre for related songs, or artist as fallback
                     const searchQuery = detectedGenre 
-                        ? `${detectedGenre} music` 
+                        ? `${detectedGenre}` 
                         : cleanArtist;
                     
-                    console.log(`🔍 Autoplay searching for: ${searchQuery} ${detectedGenre ? '(genre detected)' : '(by artist)'}`.cyan);
+                    console.log(`🔍 Autoplay searching for: ${searchQuery} ${detectedGenre ? `(genre: ${detectedGenre})` : '(by artist)'}`.cyan);
                     
                     // Search Spotify
                     const spotifyRes = await player.search(
@@ -669,6 +669,17 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                             const normalizedTitle = normalizeTitle(track.info.title);
                             const normalizedKey = `${normalizedTitle}_${normalizeTitle(track.info.author || '')}`;
                             const isrc = track.info.isrc;
+                            const titleLower = track.info.title.toLowerCase();
+                            
+                            // Skip songs with genre keyword in title (e.g., "dubstep mix", "lofi beats")
+                            const genreWordsToFilter = [
+                                'dubstep', 'lofi', 'lo-fi', 'lo fi', 'edm', 'house', 'trap', 
+                                'dnb', 'drum and bass', 'techno', 'trance', 'phonk', 'hardstyle',
+                                'hip hop', 'hip-hop', 'remix', 'slowed', 'reverb', 'bass boosted',
+                                'mix', 'compilation', 'playlist', 'best of', 'top 10', 'top 20',
+                                'megamix', 'nonstop', 'continuous', '1 hour', '2 hour', '10 hour'
+                            ];
+                            const hasGenreInTitle = genreWordsToFilter.some(word => titleLower.includes(word));
                             
                             // Skip if duplicate by ISRC, normalized title, or key
                             const isDuplicate = 
@@ -677,7 +688,7 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                                 existingKeys.has(normalizedKey) ||
                                 addedNormalized.has(normalizedTitle);
                             
-                            if (!isDuplicate) {
+                            if (!isDuplicate && !hasGenreInTitle) {
                                 uniqueTracks.push(track);
                                 addedNormalized.add(normalizedTitle);
                                 if (isrc) existingISRCs.add(isrc);
