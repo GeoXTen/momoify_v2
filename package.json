@@ -54,7 +54,8 @@
     "dotenv": "^16.4.5",
     "express": "^5.1.0",
     "genius-lyrics": "^4.4.7",
-    "lavalink-client": "^2.6.7"
+    "lavalink-client": "^2.6.7",
+    "spotify-web-api-node": "^5.0.2"
   },
   "engines": {
     "node": ">=24.0.0"

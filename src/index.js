@@ -11,6 +11,7 @@ import { trackPlay } from './utils/statsTracker.js';
 import { createStatsAPI } from './api/stats.js';
 import { createNowPlayingEmbed, createNowPlayingButtons } from './utils/nowPlayingUtils.js';
 import { is247Enabled } from './commands/247.js';
+import { getGenreFromSpotify } from './utils/spotifyGenre.js';
 import colors from 'colors';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -549,11 +550,69 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
             
             if (lastTrack) {
                 try {
-                    const searchQuery = `${lastTrack.info.title} ${lastTrack.info.author}`;
                     const allTracks = [];
+                    const title = lastTrack.info.title.toLowerCase();
+                    const author = lastTrack.info.author.toLowerCase();
                     
-                    // Search Spotify first
-                    console.log(`🔍 Searching Spotify for related tracks: ${searchQuery}`.cyan);
+                    // Clean artist name
+                    const cleanArtist = lastTrack.info.author
+                        .replace(/\s*-\s*Topic$/i, '')
+                        .replace(/VEVO$/i, '')
+                        .replace(/Official$/i, '')
+                        .trim();
+                    
+                    // Try to get genre from Spotify API first
+                    console.log(`🔍 Detecting genre from Spotify for: ${lastTrack.info.title} - ${cleanArtist}`.cyan);
+                    let detectedGenre = await getGenreFromSpotify(lastTrack.info.title, cleanArtist);
+                    
+                    // Fallback: Artist to genre mapping for known artists
+                    if (!detectedGenre) {
+                        const artistGenreMap = {
+                            'zomboy': 'dubstep', 'skrillex': 'dubstep', 'excision': 'dubstep',
+                            'virtual riot': 'dubstep', 'barely alive': 'dubstep', 'must die': 'dubstep',
+                            'trampa': 'dubstep', 'subtronics': 'dubstep', 'svdden death': 'dubstep',
+                            'marauda': 'dubstep', 'wooli': 'dubstep', 'eliminate': 'dubstep',
+                            'lofi girl': 'lofi', 'chillhop': 'lofi', 'nujabes': 'lofi',
+                            'martin garrix': 'house', 'tiesto': 'house', 'deadmau5': 'house',
+                            'rl grime': 'trap', 'yellow claw': 'trap',
+                            'pendulum': 'drum and bass', 'netsky': 'drum and bass',
+                            'kordhell': 'phonk', 'playaphonk': 'phonk', 'dvrst': 'phonk',
+                        };
+                        
+                        for (const [artist, genre] of Object.entries(artistGenreMap)) {
+                            if (author.includes(artist)) {
+                                detectedGenre = genre;
+                                console.log(`🎵 Fallback artist mapping: ${genre}`.yellow);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Fallback: Check genre keywords in title/author
+                    if (!detectedGenre) {
+                        const genreKeywords = [
+                            'dubstep', 'lofi', 'lo-fi', 'electronic', 'edm', 'house', 
+                            'trap', 'dnb', 'drum and bass', 'techno', 'trance',
+                            'phonk', 'nightcore', 'hardstyle', 'future bass'
+                        ];
+                        
+                        for (const genre of genreKeywords) {
+                            if (title.includes(genre) || author.includes(genre)) {
+                                detectedGenre = genre;
+                                console.log(`🎵 Fallback keyword detected: ${genre}`.yellow);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Build search query
+                    const searchQuery = detectedGenre 
+                        ? `${detectedGenre} music` 
+                        : cleanArtist;
+                    
+                    console.log(`🔍 Autoplay searching for: ${searchQuery} ${detectedGenre ? '(genre detected)' : '(by artist)'}`.cyan);
+                    
+                    // Search Spotify
                     const spotifyRes = await player.search(
                         { query: `spsearch:${searchQuery}` },
                         lastTrack.requester
@@ -562,8 +621,7 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                         allTracks.push(...spotifyRes.tracks);
                     }
                     
-                    // Also search SoundCloud to get more variety
-                    console.log(`🔍 Searching SoundCloud for related tracks: ${searchQuery}`.cyan);
+                    // Search SoundCloud
                     const soundcloudRes = await player.search(
                         { query: `scsearch:${searchQuery}` },
                         lastTrack.requester
