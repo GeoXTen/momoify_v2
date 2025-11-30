@@ -29,3 +29,13 @@
 │                                                                                                                      │
 │  # 5. Stop the bot                                                                                                   │
 │  pkill -f node 
+
+
+    # Just start tunnel (skips lavalink selection)   
+     npm run tunnel
+
+     # Auto-select lavalink + start bot + start tunnel
+     npm run start:with-tunnel
+
+     # Choose lavalink + start bot + start tunnel
+     npm run start:all-with-tunnel

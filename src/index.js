@@ -550,45 +550,118 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
             
             if (lastTrack) {
                 try {
+                    // Helper function to normalize titles for duplicate detection
+                    const normalizeTitle = (title) => {
+                        return title
+                            .toLowerCase()
+                            .replace(/\(.*?\)|\[.*?\]/g, '')
+                            .replace(/feat\.?|ft\.?|featuring/gi, '')
+                            .replace(/official|video|audio|lyrics|hd|hq|mv/gi, '')
+                            .replace(/[^a-z0-9\s]/g, '')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+                    };
+                    
+                    // Collect existing track titles (current, queue, and previous)
+                    const existingTracks = [
+                        lastTrack,
+                        ...player.queue.tracks,
+                        ...player.queue.previous
+                    ];
+                    
+                    const existingTitles = new Set();
+                    for (const t of existingTracks) {
+                        if (t?.info?.title) {
+                            existingTitles.add(normalizeTitle(t.info.title));
+                        }
+                    }
+                    
+                    let searchRes = null;
+                    
+                    // If source is SoundCloud, try to find related tracks on SoundCloud first
+                    if (lastTrack.info.sourceName === 'soundcloud') {
+                        console.log(`🔍 Track is from SoundCloud, searching for more by ${lastTrack.info.author}...`.cyan);
+                        
+                        // Search for more tracks by the same artist on SoundCloud
+                        const scSearch = await player.search(
+                            { query: `scsearch:${lastTrack.info.author}`, source: 'soundcloud' },
+                            lastTrack.requester
+                        );
+                        
+                        if (scSearch?.tracks?.length > 0) {
+                            // Filter out duplicates and the current track
+                            const uniqueScTracks = [];
+                            const addedTitles = new Set();
+                            
+                            for (const searchTrack of scSearch.tracks) {
+                                const normalizedTitle = normalizeTitle(searchTrack.info.title);
+                                
+                                if (existingTitles.has(normalizedTitle) || addedTitles.has(normalizedTitle)) {
+                                    continue;
+                                }
+                                
+                                uniqueScTracks.push(searchTrack);
+                                addedTitles.add(normalizedTitle);
+                                
+                                if (uniqueScTracks.length >= 10) break;
+                            }
+                            
+                            if (uniqueScTracks.length > 0) {
+                                console.log(`✓ Found ${uniqueScTracks.length} SoundCloud tracks by ${lastTrack.info.author}`.green);
+                                
+                                // Add tracks to queue
+                                for (const newTrack of uniqueScTracks) {
+                                    player.queue.add(newTrack);
+                                }
+                                
+                                console.log(`✅ Added ${uniqueScTracks.length} related SoundCloud tracks via autoplay`.green);
+                                uniqueScTracks.forEach((t, i) => {
+                                    console.log(`   ${i + 1}. ${t.info.title} - ${t.info.author}`.gray);
+                                });
+                                
+                                // Start playing
+                                if (!player.playing) {
+                                    await player.play();
+                                }
+                                return; // Done, no need to fall back to YouTube
+                            }
+                        }
+                        
+                        console.log(`⚠️ No unique SoundCloud tracks found, falling back to YouTube...`.yellow);
+                    }
+                    
+                    // For YouTube or as fallback: use YouTube Mix
+                    let videoId = lastTrack.info.identifier;
+                    
+                    // If not a YouTube track, search YouTube for the track first
+                    if (lastTrack.info.sourceName !== 'youtube') {
+                        console.log(`🔍 Searching YouTube for: ${lastTrack.info.title}...`.cyan);
+                        const ytSearch = await player.search(
+                            { query: `${lastTrack.info.title} ${lastTrack.info.author}`, source: 'youtube' },
+                            lastTrack.requester
+                        );
+                        
+                        if (ytSearch?.tracks?.length > 0) {
+                            videoId = ytSearch.tracks[0].info.identifier;
+                            console.log(`✓ Found YouTube equivalent: ${ytSearch.tracks[0].info.title}`.green);
+                        } else {
+                            console.log(`⚠️ Could not find YouTube equivalent for autoplay`.yellow);
+                            return;
+                        }
+                    }
+                    
                     // Use YouTube Mix (Radio) for related songs
-                    const videoId = lastTrack.info.identifier;
                     const mixUrl = `https://www.youtube.com/watch?v=${videoId}&list=RD${videoId}`;
                     
                     console.log(`🔍 Autoplay loading YouTube Mix for: ${lastTrack.info.title}`.cyan);
                     
                     // Load YouTube Mix playlist for related tracks
-                    const searchRes = await player.search(
+                    searchRes = await player.search(
                         { query: mixUrl },
                         lastTrack.requester
                     );
                     
                     if (searchRes?.tracks?.length > 0) {
-                        // Helper function to normalize titles for duplicate detection
-                        const normalizeTitle = (title) => {
-                            return title
-                                .toLowerCase()
-                                .replace(/\(.*?\)|\[.*?\]/g, '')
-                                .replace(/feat\.?|ft\.?|featuring/gi, '')
-                                .replace(/official|video|audio|lyrics|hd|hq|mv/gi, '')
-                                .replace(/[^a-z0-9\s]/g, '')
-                                .replace(/\s+/g, ' ')
-                                .trim();
-                        };
-                        
-                        // Collect existing track titles (current, queue, and previous)
-                        const existingTracks = [
-                            lastTrack,
-                            ...player.queue.tracks,
-                            ...player.queue.previous
-                        ];
-                        
-                        const existingTitles = new Set();
-                        for (const t of existingTracks) {
-                            if (t?.info?.title) {
-                                existingTitles.add(normalizeTitle(t.info.title));
-                            }
-                        }
-                        
                         // Filter duplicates only
                         const uniqueTracks = [];
                         const addedTitles = new Set();

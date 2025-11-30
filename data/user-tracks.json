@@ -118,8 +118,8 @@
       "limitlessperilnimda": {
         "title": "LIMITLESS PERIL",
         "artist": "NIMDA",
-        "playCount": 2,
-        "totalMinutes": 38
+        "playCount": 6,
+        "totalMinutes": 114
       },
       "prenmaloafybuilding": {
         "title": "Prenma",
@@ -334,6 +334,36 @@
       "zomboydoomsdaydubstepunk": {
         "title": "Zomboy - Doomsday",
         "artist": "Dubstep uNk",
+        "playCount": 1,
+        "totalMinutes": 3
+      },
+      "nimdalimitlessperil2025showcasedubstepunk": {
+        "title": "NIMDA - LIMITLESS PERIL (2025 SHOWCASE)",
+        "artist": "Dubstep uNk",
+        "playCount": 1,
+        "totalMinutes": 19
+      },
+      "crankdatnghtmretypeshtftdukedeucedubstepunk": {
+        "title": "Crankdat & NGHTMRE - TYPE SH*T (ft. Duke Deuce)",
+        "artist": "Dubstep uNk",
+        "playCount": 1,
+        "totalMinutes": 3
+      },
+      "nimdaxmaddubzcobhamnimda": {
+        "title": "NIMDA X MAD DUBZ - COBHAM",
+        "artist": "NIMDA",
+        "playCount": 1,
+        "totalMinutes": 4
+      },
+      "nimdaeternalnimda": {
+        "title": "NIMDA - ETERNAL",
+        "artist": "NIMDA",
+        "playCount": 1,
+        "totalMinutes": 5
+      },
+      "nimdadivkillernimda": {
+        "title": "NIMDA - DIV KILLER",
+        "artist": "NIMDA",
         "playCount": 1,
         "totalMinutes": 3
       }

@@ -1,11 +1,12 @@
 {
   "name": "momoify",
-  "version": "2.2.1",
+  "version": "2.2.5",
   "description": "Advanced Discord music bot with Lavalink client and activity status",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
+    
     "register": "node src/register-commands.js",
     "dev": "node --watch src/index.js",
     "lavalink:auto": "node scripts/auto-select-lavalink.mjs",

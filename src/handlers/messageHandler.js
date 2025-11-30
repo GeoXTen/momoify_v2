@@ -395,7 +395,7 @@ export async function handleMessageCommand(message, client) {
                     {
                         name: `${client.config.emojis.stars} Key Features`,
                         value: `${client.config.emojis.play} **High-Quality Playback** - Crystal clear audio streaming\n` +
-                               `${client.config.emojis.loop} **Smart Autoplay** - Automatic queue continuation\n` +
+                               `${client.config.emojis.loop} **Smart Autoplay** - Related tracks from same source\n` +
                                `${client.config.emojis.shuffle} **Multiple Sources** - YouTube, Spotify, SoundCloud & more\n` +
                                `${client.config.emojis.queue} **Playlist Support** - Save and manage your playlists\n` +
                                `${client.config.emojis.filters} **Audio Filters** - Bass boost, nightcore, and more effects\n` +
@@ -411,7 +411,7 @@ export async function handleMessageCommand(message, client) {
                     }
                 ],
                 footer: {
-                    text: `v2.2.1 • Requested by ${message.author.tag}`,
+                    text: `v2.2.5 • Requested by ${message.author.tag}`,
                     iconURL: message.author.displayAvatarURL()
                 },
                 timestamp: new Date().toISOString()

@@ -16,6 +16,7 @@
  *   --top N          Show only top N servers
  *   --timeout N      HTTP timeout in ms (default: 5000)
  *   --start-bot      Start the bot after selecting server
+
  */
 
 import fs from 'fs';
