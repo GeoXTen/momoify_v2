@@ -48,7 +48,17 @@ const client = new Client({
         GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent
-    ]
+    ],
+    sweepers: {
+        messages: {
+            interval: 300, // Sweep every 5 minutes
+            lifetime: 600  // Remove messages older than 10 minutes
+        },
+        users: {
+            interval: 3600, // Sweep every hour
+            filter: () => (user) => user.bot && user.id !== client.user?.id // Remove cached bots except self
+        }
+    }
 });
 
 client.commands = new Collection();
@@ -390,6 +400,10 @@ client.lavalink.on('playerCreate', (player) => {
 client.lavalink.on('playerDestroy', async (player, reason) => {
     console.log(`Player destroyed in ${player.guildId} - Reason: ${reason}`.yellow);
     
+    // Clean up player data to prevent memory leaks
+    player.nowPlayingMessage = null;
+    player.set('currentTextChannel', null);
+    
     // Clear voice channel status
     try {
         await client.rest.put(
@@ -398,6 +412,12 @@ client.lavalink.on('playerDestroy', async (player, reason) => {
         ).catch(() => {});
     } catch (error) {
         // Ignore errors - channel might not exist
+    }
+    
+    // Clean up alone timer if exists
+    if (aloneTimers.has(player.guildId)) {
+        clearTimeout(aloneTimers.get(player.guildId));
+        aloneTimers.delete(player.guildId);
     }
 });
 
@@ -502,6 +522,11 @@ client.lavalink.on('trackStart', async (player, track, payload) => {
 
 client.lavalink.on('trackEnd', async (player, track, payload) => {
     console.log(`Track ended: ${track.info.title}`.yellow);
+    
+    // Clean up old now playing message reference
+    if (player.nowPlayingMessage) {
+        player.nowPlayingMessage = null;
+    }
     
     if (payload.reason === 'replaced') return;
     if (!player.queue.tracks.length && player.repeatMode === 'off') {
