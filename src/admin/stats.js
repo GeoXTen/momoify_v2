@@ -76,7 +76,7 @@ export default {
                     name: `${e.verified} Server List`,
                     value: client.guilds.cache
                         .sort((a, b) => b.memberCount - a.memberCount)
-                        .map((g, i) => `${i + 1}. **${g.name}** (${g.memberCount.toLocaleString()} members)`)
+                        .map((g, i) => `${i + 1}. **${g.name}** \`${g.id}\` (${g.memberCount.toLocaleString()} members)`)
                         .slice(0, 15)
                         .join('\n') || 'No servers',
                     inline: false
