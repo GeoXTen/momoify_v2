@@ -73,6 +73,15 @@ export default {
                     inline: false
                 },
                 {
+                    name: `${e.verified} Server List`,
+                    value: client.guilds.cache
+                        .sort((a, b) => b.memberCount - a.memberCount)
+                        .map((g, i) => `${i + 1}. **${g.name}** (${g.memberCount.toLocaleString()} members)`)
+                        .slice(0, 15)
+                        .join('\n') || 'No servers',
+                    inline: false
+                },
+                {
                     name: `${e.melody} Music Statistics`,
                     value: `└─ ${e.play} Active Players: **${activePlayers}**\n` +
                            `└─ ${e.pause} Idle Players: **${idlePlayers}**\n` +
