@@ -464,53 +464,37 @@ function updateEnvFile(server) {
 }
 
 /**
- * Start the bot
+ * Start the bot with PM2
  */
 function startBot() {
-  log.header('🚀 Starting Bot');
+  log.header('🚀 Starting Bot with PM2');
   
-  try {
-    const isWindows = process.platform === 'win32';
-    
-    log.info('Starting bot process...');
-    
-    let bot;
-    if (isWindows) {
-      // Windows: use npm.cmd
-      bot = spawn('npm.cmd', ['start'], {
-        detached: true,
-        stdio: 'inherit',
-        shell: true
-      });
+  const isWindows = process.platform === 'win32';
+  const pm2Cmd = isWindows ? 'pm2.cmd' : 'pm2';
+  
+  log.info('Starting bot with PM2...');
+  
+  const bot = spawn(pm2Cmd, ['start', 'src/index.js', '--name', 'geomsc', '--update-env'], {
+    stdio: 'inherit',
+    shell: true,
+    cwd: process.cwd()
+  });
+  
+  bot.on('exit', (code) => {
+    if (code === 0) {
+      log.success('Bot started with PM2 successfully');
     } else {
-      // Linux/Unix: use npm and properly detach
-      bot = spawn('npm', ['start'], {
-        detached: true,
-        stdio: ['ignore', 'ignore', 'ignore'],
-        shell: true
-      });
+      log.error(`PM2 start failed with code ${code}`);
     }
-    
-    bot.on('error', (error) => {
-      log.error(`Failed to start bot: ${error.message}`);
-    });
-    
-    // Detach the process so it continues running
-    bot.unref();
-    
-    log.success('Bot started successfully!');
-    log.info('The bot is now running in the background');
-    
-    if (!isWindows) {
-      log.info('Tip: Use "ps aux | grep node" to check running processes');
-      log.info('Tip: Use "pkill -f node" to stop all node processes');
-    }
-    
-    return true;
-  } catch (error) {
-    log.error(`Failed to start bot: ${error.message}`);
-    return false;
-  }
+    process.exit(code);
+  });
+  
+  bot.on('error', (error) => {
+    log.error(`Failed to start PM2: ${error.message}`);
+    process.exit(1);
+  });
+  
+  return true;
 }
 
 /**

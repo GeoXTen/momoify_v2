@@ -48,17 +48,7 @@ const client = new Client({
         GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent
-    ],
-    sweepers: {
-        messages: {
-            interval: 300, // Sweep every 5 minutes
-            lifetime: 600  // Remove messages older than 10 minutes
-        },
-        users: {
-            interval: 3600, // Sweep every hour
-            filter: () => (user) => user.bot && user.id !== client.user?.id // Remove cached bots except self
-        }
-    }
+    ]
 });
 
 client.commands = new Collection();
@@ -737,6 +727,32 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
     } catch (error) {
         console.error('Error in autoplay logic:', error.message);
     }
+});
+
+// Global error handlers to prevent crashes
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled Promise Rejection:'.red, error);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:'.red, error);
+});
+
+// Handle Discord disconnects
+client.on('error', (error) => {
+    console.error('Discord client error:'.red, error);
+});
+
+client.on('shardError', (error) => {
+    console.error('Discord shard error:'.red, error);
+});
+
+client.on('shardDisconnect', (event, id) => {
+    console.log(`Shard ${id} disconnected. Reconnecting...`.yellow);
+});
+
+client.on('shardReconnecting', (id) => {
+    console.log(`Shard ${id} reconnecting...`.yellow);
 });
 
 client.login(config.token);

@@ -7,7 +7,7 @@ export default {
             // Remove interpreter line entirely, pm2 detects from shebang/extension
             // Remove interpreterArgs, --experimental-modules is deprecated in node 24
             instances: 1,
-            watch: true,
+            watch: false,
             max_memory_restart: '500M',
             // env_file doesn't exist in pm2, use dotenv in your app or:
             // Remove env_file line
