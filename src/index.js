@@ -48,7 +48,15 @@ const client = new Client({
         GatewayIntentBits.GuildVoiceStates,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent
-    ]
+    ],
+    ws: {
+        properties: {
+            browser: 'Discord iOS'
+        }
+    },
+    rest: {
+        timeout: 60000
+    }
 });
 
 client.commands = new Collection();
