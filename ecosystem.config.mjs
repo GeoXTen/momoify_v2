@@ -4,8 +4,8 @@ export default {
         {
             name: 'geomsc',
             script: './src/index.js',
-            // Remove interpreter line entirely, pm2 detects from shebang/extension
-            // Remove interpreterArgs, --experimental-modules is deprecated in node 24
+            // Enable garbage collection for 24/7 memory management
+            node_args: '--expose-gc',
             instances: 1,
             watch: false,
             max_memory_restart: '500M',

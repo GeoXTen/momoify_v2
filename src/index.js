@@ -56,6 +56,29 @@ const client = new Client({
     },
     rest: {
         timeout: 60000
+    },
+    // Memory optimization: Cache sweepers to prevent memory leaks during 24/7 operation
+    sweepers: {
+        messages: {
+            interval: 300, // Every 5 minutes
+            lifetime: 600  // Remove messages older than 10 minutes
+        },
+        users: {
+            interval: 3600, // Every hour
+            filter: () => user => !user.bot && user.id !== client.user?.id
+        },
+        guildMembers: {
+            interval: 3600, // Every hour
+            filter: () => member => !member.user.bot && !member.voice?.channelId
+        },
+        threadMembers: {
+            interval: 3600,
+            filter: () => () => true
+        },
+        threads: {
+            interval: 3600,
+            lifetime: 1800
+        }
     }
 });
 
@@ -74,7 +97,7 @@ client.lavalink = new LavalinkManager({
     ],
     sendToShard: (guildId, payload) => client.guilds.cache.get(guildId)?.shard?.send(payload),
     queueOptions: {
-        maxPreviousTracks: 10,
+        maxPreviousTracks: 5, // Reduced from 10 to save memory during 24/7
         queueChangesWatcher: null
     },
     playerOptions: {
@@ -193,6 +216,38 @@ client.once(Events.ClientReady, async () => {
     
     // Initialize Stats API
     createStatsAPI(client);
+    
+    // Memory cleanup interval for 24/7 operation
+    setInterval(() => {
+        // Clean up old search cache entries
+        if (client.searchCache) {
+            const now = Date.now();
+            for (const [key, value] of client.searchCache.entries()) {
+                if (now - value.timestamp > 300000) { // 5 minutes
+                    client.searchCache.delete(key);
+                }
+            }
+        }
+        
+        // Clean up player nowPlayingMessage references for inactive players
+        for (const [guildId, player] of client.lavalink.players) {
+            if (!player.playing && !player.paused) {
+                player.nowPlayingMessage = null;
+            }
+            // Clear previous tracks if too many accumulated (keep only last 5)
+            if (player.queue?.previous?.length > 5) {
+                player.queue.previous.splice(0, player.queue.previous.length - 5);
+            }
+        }
+        
+        // Force garbage collection if available (requires --expose-gc flag)
+        if (global.gc) {
+            global.gc();
+            console.log('🗑️ Garbage collection triggered'.gray);
+        }
+    }, 10 * 60 * 1000); // Every 10 minutes
+    
+    console.log(`✓ Memory cleanup interval started (every 10 min)`.green);
 });
 
 client.on('interactionCreate', async interaction => {
