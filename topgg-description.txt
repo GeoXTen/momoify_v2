@@ -1,0 +1,131 @@
+# Momoify - Top.gg Description
+
+## Short Description (for top.gg summary)
+🎵 100% FREE music bot! 24/7 mode, autoplay, Spotify/YouTube/SoundCloud support, filters, stats & more. All features free forever - no premium!
+
+---
+
+## Long Description (for top.gg page)
+
+# ✧˖°. 𝓜𝓸𝓶𝓸𝓲𝓯𝔂 .°˖✧
+### 🎵 Your Ultimate Free Music Companion
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## 💎 100% FREE FOREVER
+```
+No Premium • No Paywalls • No Locked Features
+Every feature available to everyone, always!
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## 🎧 Multi-Platform Support
+
+| Platform | Status |
+|----------|--------|
+| YouTube | ✅ Full Support |
+| Spotify | ✅ Full Support |
+| SoundCloud | ✅ Full Support |
+| Deezer | ✅ Full Support |
+| Apple Music | ✅ Full Support |
+
+> Just paste any link - Momoify handles the rest!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## ⭐ Key Features
+
+### 🌙 24/7 Mode
+> Keep the vibes going non-stop!
+- Bot stays connected forever
+- Perfect for lofi/chill servers
+- No interruptions, ever
+
+### 🔄 Smart Autoplay
+> Never run out of music!
+- Auto-queues related tracks
+- Endless music discovery
+- Based on your taste
+
+### 🎛️ Audio Filters
+> Customize your sound!
+- Bass Boost, Nightcore, Vaporwave
+- Pitch & Speed control
+- And many more...
+
+### 📊 Listening Stats
+> Track your music journey!
+- Personal listening profile
+- Server leaderboards
+- Global rankings
+- Top tracks & artists
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## 🎮 Interactive Controls
+
+```
+╔══════════════════════════════════╗
+║  ⏮️ Previous  ⏯️ Play/Pause  ⏭️ Skip  ║
+║  🔀 Shuffle   🔁 Loop      ⏹️ Stop  ║
+║  📜 Queue     🎤 Lyrics    🔊 Volume ║
+╚══════════════════════════════════╝
+```
+> Beautiful buttons on every now playing message!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## 📝 Popular Commands
+
+| Command | Description |
+|---------|-------------|
+| `/play` | 🎵 Play any song or playlist |
+| `/search` | 🔍 Search & select from results |
+| `/queue` | 📜 View current queue |
+| `/247` | 🌙 Toggle 24/7 mode |
+| `/autoplay` | 🔄 Toggle autoplay |
+| `/filters` | 🎛️ Apply audio filters |
+| `/lyrics` | 🎤 Get song lyrics |
+| `/profile` | 📊 View your stats |
+| `/leaderboard` | 🏆 Server rankings |
+
+> Use `/help` for full command list!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## 💫 Why Momoify?
+
+```diff
++ 100% Free - All Features Unlocked
++ Stable 24/7 Uptime
++ Fast Response Times
++ High-Quality Audio
++ Regular Updates
++ Clean Modern Design
++ Easy to Use
+```
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## 🚀 Get Started
+
+1️⃣ Invite Momoify to your server
+2️⃣ Join a voice channel
+3️⃣ Use `/play <song>` and enjoy!
+
+> It's that simple! 🎉
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### Made with 💜 for music lovers
+
+---
+
+## Tags (for top.gg)
+music, free, 24/7, spotify, youtube, soundcloud, autoplay, queue, filters, lyrics, high-quality, playlist, leaderboard, stats, no-premium
+
+---
+
+## Invite Link Format
+https://discord.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&permissions=3147776&scope=bot%20applications.commands
