@@ -10,6 +10,8 @@
 # ✧˖°. 𝓜𝓸𝓶𝓸𝓲𝓯𝔂 .°˖✧
 ### 🎵 Your Ultimate Free Music Companion
 
+![Banner](https://media.discordapp.net/attachments/572748784753180680/1445927100480749759/Copilot_20251204_075725-removebg-preview.png?ex=6932200c&is=6930ce8c&hm=11be69d4a3eb66dd93deae60c0932ed4ba7986f0c9213cd7f601d339f989bf9c&=&format=png&quality=lossless)
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ## 💎 100% FREE FOREVER
@@ -24,8 +26,8 @@ Every feature available to everyone, always!
 
 | Platform | Status |
 |----------|--------|
-| YouTube | ✅ Full Support |
 | Spotify | ✅ Full Support |
+| Youtube | ✅ Full Support |
 | SoundCloud | ✅ Full Support |
 | Deezer | ✅ Full Support |
 | Apple Music | ✅ Full Support |
@@ -61,18 +63,20 @@ Every feature available to everyone, always!
 - Global rankings
 - Top tracks & artists
 
+### 💬 Quote Generator
+> Turn messages into art!
+- Beautiful quote images
+- Multiple font styles
+- Light & dark themes
+- Share memorable moments
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-## 🎮 Interactive Controls
+## 🎮 Screenshots
 
-```
-╔══════════════════════════════════╗
-║  ⏮️ Previous  ⏯️ Play/Pause  ⏭️ Skip  ║
-║  🔀 Shuffle   🔁 Loop      ⏹️ Stop  ║
-║  📜 Queue     🎤 Lyrics    🔊 Volume ║
-╚══════════════════════════════════╝
-```
-> Beautiful buttons on every now playing message!
+![Now Playing](https://media.discordapp.net/attachments/572748784753180680/1445924944411234436/image.png?ex=69321e0a&is=6930cc8a&hm=86f831e57f5b60b8977936ffd21697795a4244ec9503b1cbda5702235e8aeb81&=&format=png&quality=lossless)
+![Queue](https://media.discordapp.net/attachments/572748784753180680/1445925119129157652/image.png?ex=69321e34&is=6930ccb4&hm=56c99c39e6235a74224bb8e8797a8d757f4156ef2c075271910a22d809e502ef&=&format=png&quality=lossless)
+![Quote](https://media.discordapp.net/attachments/572748784753180680/1445925296317534308/image.png?ex=69321e5e&is=6930ccde&hm=958bf24162dd3a09af83ce1544f5e1c2fc64fd8c598652056e8e810fdf94cb4f&=&format=png&quality=lossless)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -89,8 +93,10 @@ Every feature available to everyone, always!
 | `/lyrics` | 🎤 Get song lyrics |
 | `/profile` | 📊 View your stats |
 | `/leaderboard` | 🏆 Server rankings |
+| `/quote` | 💬 Generate quote image |
 
 > Use `/help` for full command list!
+
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

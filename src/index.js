@@ -818,4 +818,55 @@ client.on('shardReconnecting', (id) => {
     console.log(`Shard ${id} reconnecting...`.yellow);
 });
 
+// Auto-resume players after shard reconnects
+client.on('shardResume', async (id, replayedEvents) => {
+    console.log(`Shard ${id} resumed! Checking for players to reconnect...`.green);
+    
+    // Wait a moment for voice states to stabilize
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Get all players and try to reconnect them
+    for (const [guildId, player] of client.lavalink.players) {
+        try {
+            const guild = client.guilds.cache.get(guildId);
+            if (!guild) continue;
+            
+            // Check if this guild is on the resumed shard
+            if (guild.shardId !== id) continue;
+            
+            const voiceChannelId = player.voiceChannelId;
+            if (!voiceChannelId) continue;
+            
+            const voiceChannel = guild.channels.cache.get(voiceChannelId);
+            if (!voiceChannel) continue;
+            
+            // Check if 24/7 mode is enabled or player has a current track
+            const has247 = await is247Enabled(guildId);
+            const hasTrack = player.queue.current;
+            
+            if (has247 || hasTrack) {
+                console.log(`Reconnecting player in guild ${guild.name} (${guildId})...`.cyan);
+                
+                // Reconnect to voice channel
+                await player.connect();
+                
+                // Wait for connection to establish
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Resume playback if there was a track
+                if (hasTrack && player.paused) {
+                    await player.pause(false);
+                    console.log(`Resumed playback in ${guild.name}`.green);
+                } else if (hasTrack && !player.playing) {
+                    // If player is not playing but has a track, try to resume
+                    await player.play();
+                    console.log(`Restarted playback in ${guild.name}`.green);
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to reconnect player in ${guildId}:`.red, error.message);
+        }
+    }
+});
+
 client.login(config.token);

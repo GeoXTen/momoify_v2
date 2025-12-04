@@ -1,3 +1,2 @@
-🔴 Memory Usage
-└─ 45.85MB / 51.77MB (88.6%)
-└─ RSS: 155.25MB
+pm2 restart ecosystem.config.mjs --only geomsc
+
