@@ -1945,10 +1945,13 @@ async function handleSearchButton(interaction, args, client) {
                 }
             }
             
-            // Add track to queue
-            player.queue.add(trackToAdd);
+            // Add track to queue - add as NEXT track (position 0) if already playing
+            // This way searched tracks play sooner, not after entire playlist
+            const position = wasPlaying ? 0 : undefined;
+            player.queue.add(trackToAdd, position);
             
             console.log('[Search] After adding track:'.green);
+            console.log(`  Added at position: ${position === 0 ? 'NEXT (0)' : 'END'}`.green);
             console.log(`  New queue size: ${player.queue.tracks.length}`.green);
             console.log(`  Queue tracks:`, player.queue.tracks.map(t => `${t.info.title} (${t.info.sourceName})`));
             
@@ -2039,13 +2042,13 @@ async function handleSearchButton(interaction, args, client) {
                 await interaction.editReply({
                     embeds: [{
                         color: client.config.colors.success,
-                        title: '✅ Added to Queue',
+                        title: '✅ Playing Next',
                         description: `**${selectedTrack.info.title}**`,
                         fields: [
                             { name: 'Artist', value: selectedTrack.info.author, inline: true },
                             { name: 'Duration', value: duration, inline: true },
                             { name: 'Source', value: platform, inline: true },
-                            { name: 'Position in Queue', value: `#${player.queue.tracks.length}`, inline: true }
+                            { name: 'Position', value: '⏭️ Up Next', inline: true }
                         ],
                         thumbnail: { url: selectedTrack.info.artworkUrl || selectedTrack.info.thumbnail || null },
                         timestamp: new Date().toISOString()

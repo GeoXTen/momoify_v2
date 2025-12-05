@@ -15,9 +15,11 @@ async function refreshToken() {
         const data = await spotifyApi.clientCredentialsGrant();
         spotifyApi.setAccessToken(data.body.access_token);
         tokenExpiry = Date.now() + (data.body.expires_in - 60) * 1000;
+        console.log('✓ Spotify token refreshed'.green);
         return true;
     } catch (error) {
-        console.error('Failed to refresh Spotify token:', error.message);
+        const errorMsg = error?.body?.error_description || error?.body?.error || error?.message || JSON.stringify(error);
+        console.error(`Failed to refresh Spotify token: ${errorMsg}`.red);
         return false;
     }
 }
@@ -50,33 +52,91 @@ export async function getSpotifyRecommendations(trackTitle, artistName, limit = 
         try {
             const featuresResult = await spotifyApi.getAudioFeaturesForTrack(trackId);
             audioFeatures = featuresResult.body;
-            console.log(`🎵 Audio features - Energy: ${audioFeatures.energy?.toFixed(2)}, Tempo: ${audioFeatures.tempo?.toFixed(0)}, Danceability: ${audioFeatures.danceability?.toFixed(2)}`.gray);
+            console.log(`🎵 Audio features - Energy: ${audioFeatures.energy?.toFixed(2)}, Tempo: ${audioFeatures.tempo?.toFixed(0)}, Danceability: ${audioFeatures.danceability?.toFixed(2)}, Valence: ${audioFeatures.valence?.toFixed(2)}`.gray);
         } catch (error) {
             console.log(`⚠️ Could not get audio features: ${error.message}`.yellow);
         }
         
-        // Build recommendations options
+        // Get artist genres for genre seeding
+        let artistGenres = [];
+        if (artistId) {
+            try {
+                const artistInfo = await spotifyApi.getArtist(artistId);
+                artistGenres = artistInfo.body.genres || [];
+                if (artistGenres.length > 0) {
+                    console.log(`🎵 Artist genres: ${artistGenres.slice(0, 3).join(', ')}`.gray);
+                }
+            } catch (error) {
+                // Ignore genre fetch errors
+            }
+        }
+        
+        // Build recommendations options with Spotify-style algorithm
         const options = {
             limit: limit,
             seed_tracks: [trackId]
         };
         
-        // Add artist seed if available
+        // Add artist seed if available (max 5 seeds total across tracks, artists, genres)
         if (artistId) {
             options.seed_artists = [artistId];
         }
         
-        // Add audio feature targets for better recommendations
+        // Add genre seed if we have room (max 5 seeds total)
+        // Only add 1 genre to leave room for track + artist seeds
+        if (artistGenres.length > 0 && (!options.seed_artists || options.seed_artists.length < 2)) {
+            options.seed_genres = [artistGenres[0]];
+        }
+        
+        // Enhanced audio feature targeting (Spotify-style content-based filtering)
         if (audioFeatures) {
-            // Use target values based on current track features
+            // Energy - how intense/active the track feels (0.0 to 1.0)
             if (audioFeatures.energy !== undefined) {
                 options.target_energy = audioFeatures.energy;
+                // Allow 20% variance for variety
+                options.min_energy = Math.max(0, audioFeatures.energy - 0.2);
+                options.max_energy = Math.min(1, audioFeatures.energy + 0.2);
             }
+            
+            // Danceability - how suitable for dancing (0.0 to 1.0)
             if (audioFeatures.danceability !== undefined) {
                 options.target_danceability = audioFeatures.danceability;
+                options.min_danceability = Math.max(0, audioFeatures.danceability - 0.15);
+                options.max_danceability = Math.min(1, audioFeatures.danceability + 0.15);
             }
+            
+            // Valence - musical positivity/mood (0.0 = sad, 1.0 = happy)
             if (audioFeatures.valence !== undefined) {
-                options.target_valence = audioFeatures.valence; // mood
+                options.target_valence = audioFeatures.valence;
+                options.min_valence = Math.max(0, audioFeatures.valence - 0.25);
+                options.max_valence = Math.min(1, audioFeatures.valence + 0.25);
+            }
+            
+            // Tempo - BPM (important for EDM/dance music)
+            if (audioFeatures.tempo !== undefined && audioFeatures.tempo > 0) {
+                options.target_tempo = audioFeatures.tempo;
+                // Allow 15 BPM variance
+                options.min_tempo = Math.max(60, audioFeatures.tempo - 15);
+                options.max_tempo = Math.min(200, audioFeatures.tempo + 15);
+            }
+            
+            // Instrumentalness - vocal vs instrumental (0.0 = vocals, 1.0 = instrumental)
+            if (audioFeatures.instrumentalness !== undefined) {
+                // Only set if track is notably instrumental or vocal
+                if (audioFeatures.instrumentalness > 0.5) {
+                    options.min_instrumentalness = 0.3; // Prefer more instrumental
+                } else if (audioFeatures.instrumentalness < 0.2) {
+                    options.max_instrumentalness = 0.5; // Prefer more vocal
+                }
+            }
+            
+            // Acousticness - electronic vs acoustic
+            if (audioFeatures.acousticness !== undefined) {
+                if (audioFeatures.acousticness > 0.7) {
+                    options.min_acousticness = 0.4; // Prefer acoustic
+                } else if (audioFeatures.acousticness < 0.3) {
+                    options.max_acousticness = 0.5; // Prefer electronic
+                }
             }
         }
         
@@ -88,7 +148,7 @@ export async function getSpotifyRecommendations(trackTitle, artistName, limit = 
             return null;
         }
         
-        console.log(`✓ Got ${recommendations.body.tracks.length} Spotify recommendations`.green);
+        console.log(`✓ Got ${recommendations.body.tracks.length} Spotify recommendations (content-based + collaborative filtering)`.green);
         
         // Return track info for each recommendation
         return recommendations.body.tracks.map(t => ({
@@ -97,11 +157,16 @@ export async function getSpotifyRecommendations(trackTitle, artistName, limit = 
             spotifyUrl: t.external_urls?.spotify,
             spotifyId: t.id,
             duration: t.duration_ms,
-            album: t.album?.name
+            album: t.album?.name,
+            popularity: t.popularity // Include popularity score
         }));
         
     } catch (error) {
-        console.error('Spotify recommendations error:', error.message);
+        const errorMsg = error?.body?.error?.message || error?.message || JSON.stringify(error);
+        console.error(`Spotify recommendations error: ${errorMsg}`.red);
+        if (error?.body) {
+            console.error('Spotify API response:', JSON.stringify(error.body, null, 2));
+        }
         return null;
     }
 }

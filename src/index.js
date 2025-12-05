@@ -596,6 +596,24 @@ client.lavalink.on('trackError', async (player, track, payload) => {
     console.error(`  Error: ${payload.exception?.message || 'Unknown error'}`.red);
     console.error(`  Severity: ${payload.exception?.severity || 'unknown'}`.red);
     console.error(`${'✗'.repeat(60)}\n`.red);
+    
+    // Auto-skip errored tracks to prevent stuck player
+    try {
+        console.log('Auto-skipping errored track...'.yellow);
+        if (player.queue.tracks.length > 0) {
+            await player.skip();
+            console.log('Skipped to next track'.green);
+        } else {
+            // Check autoplay before stopping
+            const { isAutoplayEnabled } = await import('./commands/autoplay.js');
+            if (!isAutoplayEnabled(player.guildId)) {
+                await player.stopPlaying();
+                console.log('No more tracks, stopped player'.yellow);
+            }
+        }
+    } catch (error) {
+        console.error('Error skipping errored track:', error.message);
+    }
 });
 
 client.lavalink.on('trackStuck', async (player, track, payload) => {
@@ -608,8 +626,12 @@ client.lavalink.on('trackStuck', async (player, track, payload) => {
             await player.skip();
             console.log('Skipped to next track'.green);
         } else {
-            await player.stopPlaying();
-            console.log('No more tracks, stopped player'.yellow);
+            // Check autoplay before stopping
+            const { isAutoplayEnabled } = await import('./commands/autoplay.js');
+            if (!isAutoplayEnabled(player.guildId)) {
+                await player.stopPlaying();
+                console.log('No more tracks, stopped player'.yellow);
+            }
         }
     } catch (error) {
         console.error('Error handling stuck track:', error.message);
@@ -728,17 +750,35 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                                     continue;
                                 }
                                 
-                                // Search for this track to get a playable result
+                                // Search for this track - try Spotify first, fallback to YouTube
                                 try {
-                                    const searchResult = await player.search(
-                                        { query: rec.spotifyUrl || `${rec.title} ${rec.artist}` },
-                                        lastTrack.requester
-                                    );
+                                    let searchResult = null;
+                                    
+                                    // Try Spotify URL/search first
+                                    if (rec.spotifyUrl) {
+                                        try {
+                                            searchResult = await player.search(
+                                                { query: rec.spotifyUrl },
+                                                lastTrack.requester
+                                            );
+                                        } catch (e) {
+                                            // Spotify plugin not available
+                                        }
+                                    }
+                                    
+                                    // If Spotify failed or no URL, try YouTube search
+                                    if (!searchResult?.tracks?.length) {
+                                        searchResult = await player.search(
+                                            { query: `${rec.artist} - ${rec.title}`, source: 'youtube' },
+                                            lastTrack.requester
+                                        );
+                                    }
                                     
                                     if (searchResult?.tracks?.length > 0) {
                                         uniqueSpotifyTracks.push(searchResult.tracks[0]);
                                         addedTitles.add(normalizedTitle);
-                                        console.log(`   ✓ ${rec.title} - ${rec.artist}`.gray);
+                                        const source = searchResult.tracks[0].info.sourceName || 'unknown';
+                                        console.log(`   ✓ ${rec.title} - ${rec.artist} [${source}]`.gray);
                                     }
                                 } catch (searchError) {
                                     console.log(`   ⚠️ Could not find: ${rec.title}`.yellow);
