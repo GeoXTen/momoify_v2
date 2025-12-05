@@ -1,0 +1,13 @@
+1|geomsc   | Error executing skip:
+1|geomsc   | User: geonotfounds
+1|geomsc   | Guild: ✦JAWA✦ | 50K!
+1|geomsc   | Error Message: The operation was aborted due to timeout
+1|geomsc   | Stack Trace:
+1|geomsc   | TimeoutError: The operation was aborted due to timeout
+1|geomsc   |     at node:internal/deps/undici/undici:15845:13
+1|geomsc   |     at async LavalinkNode.rawRequest (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:1077:22)
+1|geomsc   |     at async LavalinkNode.request (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:1083:35)
+1|geomsc   |     at async LavalinkNode.updatePlayer (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:1206:17)
+1|geomsc   |     at async Player.skip (file:///home/geo/bot/node_modules/lavalink-client/dist/index.mjs:4218:5)
+1|geomsc   |     at async Object.execute (file:///home/geo/bot/src/commands/skip.js:125:9)
+1|geomsc   |     at async Client.<anonymous> (file:///home/geo/bot/src/index.js:303:9)

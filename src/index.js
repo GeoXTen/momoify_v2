@@ -11,7 +11,7 @@ import { trackPlay } from './utils/statsTracker.js';
 import { createStatsAPI } from './api/stats.js';
 import { createNowPlayingEmbed, createNowPlayingButtons } from './utils/nowPlayingUtils.js';
 import { is247Enabled } from './commands/247.js';
-import { getGenreFromSpotify } from './utils/spotifyGenre.js';
+import { getGenreFromSpotify, getSpotifyRecommendations } from './utils/spotifyGenre.js';
 import colors from 'colors';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -92,7 +92,10 @@ client.lavalink = new LavalinkManager({
             host: config.lavalink.host,
             port: config.lavalink.port,
             id: 'main-node',
-            secure: config.lavalink.secure
+            secure: config.lavalink.secure,
+            requestTimeout: 30000, // 30 second timeout for requests
+            retryAmount: 3,
+            retryDelay: 3000
         }
     ],
     sendToShard: (guildId, payload) => client.guilds.cache.get(guildId)?.shard?.send(payload),
@@ -574,29 +577,15 @@ client.lavalink.on('trackStart', async (player, track, payload) => {
 });
 
 client.lavalink.on('trackEnd', async (player, track, payload) => {
-    console.log(`Track ended: ${track.info.title}`.yellow);
+    console.log(`Track ended: ${track.info.title} (reason: ${payload.reason})`.yellow);
     
     // Clean up old now playing message reference
     if (player.nowPlayingMessage) {
         player.nowPlayingMessage = null;
     }
     
-    if (payload.reason === 'replaced') return;
-    if (!player.queue.tracks.length && player.repeatMode === 'off') {
-        // Queue ended, clear voice status after delay
-        setTimeout(async () => {
-            try {
-                if (!player.queue.current && !player.queue.tracks.length) {
-                    await client.rest.put(
-                        `/channels/${player.voiceChannelId}/voice-status`,
-                        { body: { status: '' } }
-                    ).catch(() => {});
-                }
-            } catch (error) {
-                // Ignore
-            }
-        }, 5000);
-    }
+    // Don't interfere with queue progression - let lavalink-client handle it
+    // The queueEnd event will fire when the queue is actually empty
 });
 
 client.lavalink.on('trackError', async (player, track, payload) => {
@@ -611,6 +600,20 @@ client.lavalink.on('trackError', async (player, track, payload) => {
 
 client.lavalink.on('trackStuck', async (player, track, payload) => {
     console.error(`Track stuck: ${track.info.title} - ${payload.thresholdMs}ms`.red);
+    
+    // Auto-skip stuck tracks
+    try {
+        console.log('Attempting to skip stuck track...'.yellow);
+        if (player.queue.tracks.length > 0) {
+            await player.skip();
+            console.log('Skipped to next track'.green);
+        } else {
+            await player.stopPlaying();
+            console.log('No more tracks, stopped player'.yellow);
+        }
+    } catch (error) {
+        console.error('Error handling stuck track:', error.message);
+    }
 });
 
 client.lavalink.on('queueEnd', async (player, track, payload) => {
@@ -708,6 +711,61 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                         console.log(`⚠️ No unique SoundCloud tracks found, falling back to YouTube...`.yellow);
                     }
                     
+                    // If source is Spotify, try Spotify recommendations first
+                    if (lastTrack.info.sourceName === 'spotify' || lastTrack.info.uri?.includes('spotify.com')) {
+                        console.log(`🎵 Track is from Spotify, getting Spotify recommendations...`.cyan);
+                        
+                        const spotifyRecs = await getSpotifyRecommendations(lastTrack.info.title, lastTrack.info.author, 15);
+                        
+                        if (spotifyRecs && spotifyRecs.length > 0) {
+                            const uniqueSpotifyTracks = [];
+                            const addedTitles = new Set();
+                            
+                            for (const rec of spotifyRecs) {
+                                const normalizedTitle = normalizeTitle(rec.title);
+                                
+                                if (existingTitles.has(normalizedTitle) || addedTitles.has(normalizedTitle)) {
+                                    continue;
+                                }
+                                
+                                // Search for this track to get a playable result
+                                try {
+                                    const searchResult = await player.search(
+                                        { query: rec.spotifyUrl || `${rec.title} ${rec.artist}` },
+                                        lastTrack.requester
+                                    );
+                                    
+                                    if (searchResult?.tracks?.length > 0) {
+                                        uniqueSpotifyTracks.push(searchResult.tracks[0]);
+                                        addedTitles.add(normalizedTitle);
+                                        console.log(`   ✓ ${rec.title} - ${rec.artist}`.gray);
+                                    }
+                                } catch (searchError) {
+                                    console.log(`   ⚠️ Could not find: ${rec.title}`.yellow);
+                                }
+                                
+                                if (uniqueSpotifyTracks.length >= 10) break;
+                            }
+                            
+                            if (uniqueSpotifyTracks.length > 0) {
+                                console.log(`✓ Found ${uniqueSpotifyTracks.length} Spotify recommendations`.green);
+                                
+                                for (const newTrack of uniqueSpotifyTracks) {
+                                    player.queue.add(newTrack);
+                                }
+                                
+                                console.log(`✅ Added ${uniqueSpotifyTracks.length} Spotify recommended tracks via autoplay`.green);
+                                
+                                if (!player.playing) {
+                                    await player.play();
+                                }
+                                return;
+                            }
+                        }
+                        
+                        console.log(`⚠️ No Spotify recommendations found, falling back to YouTube...`.yellow);
+                    }
+                    
                     // For YouTube or as fallback: use YouTube Mix
                     let videoId = lastTrack.info.identifier;
                     
@@ -786,6 +844,20 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
         } else {
             console.log(`The player will be destroyed in 30 minutes if no new tracks are added.`.yellow);
             console.log(`Use \`/play\` to continue listening or \`/autoplay\` for unlimited music.`.cyan);
+            
+            // Clear voice status when queue ends
+            setTimeout(async () => {
+                try {
+                    if (!player.queue.current && !player.queue.tracks.length) {
+                        await client.rest.put(
+                            `/channels/${player.voiceChannelId}/voice-status`,
+                            { body: { status: '' } }
+                        ).catch(() => {});
+                    }
+                } catch (error) {
+                    // Ignore
+                }
+            }, 5000);
         }
     } catch (error) {
         console.error('Error in autoplay logic:', error.message);
