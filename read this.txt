@@ -1,112 +1,14 @@
-🎧 How Spotify Recommends Songs After You Play ONE Track
-
-When you play one song, Spotify instantly uses several systems to guess what you want next. The process happens in milliseconds.
-
-✅ 1. Content-Based Analysis (What the song sounds like)
-
-Spotify analyzes the song you played using audio AI:
-
-Tempo (cepat/lambat)
-
-Key & scale
-
-Energy level
-
-Danceability
-
-Mood (sad, chill, hype, aggressive, etc.)
-
-Instrumental vs vocal
-
-Genre & subgenre
-
-So if you start a track that’s chill lofi, it will look for other songs with similar audio patterns.
-
-✅ 2. Collaborative Filtering (What similar listeners played next)
-
-Spotify sees:
-
-“People who listened to this song, what did they usually listen to after?”
-
-If millions of users played Song A → Song B, Spotify assumes B is a good next choice for you.
-
-This is basically like Netflix recommendations.
-
-✅ 3. Session-Based Recommendations (What you're doing right now)
-
-Spotify also checks your current session pattern:
-
-Are you skipping songs fast?
-
-Volume going up or down?
-
-Did you recently listen to similar artists?
-
-Time of day (malam → chill, pagi → upbeat)
-
-All this helps decide the next track.
-
-✅ 4. Short-Term Taste Profile
-
-If you’ve been listening to a certain style today or this week, Spotify prioritizes that.
-
-Example:
-
-If today you listened to EDM → you play a random pop song
-→ Spotify still recommends EDM-ish pop.
-
-✅ 5. Long-Term Taste Profile
-
-Spotify keeps a hidden internal “taste profile” of you:
-
-Genres you like
-
-Artists you replay
-
-Songs you never skip
-
-Your old favorites
-
-This influences what kind of recommendations appear after one song.
-
-🎵 Putting it all together (Example)
-
-You play:
-
-“Geoxor – Nemesis” (EDM, energetic, melodic dubstep)
-
-Spotify looks at:
-
-Acoustic features → energetic, high BPM, electronic, melodic
-
-Other users → many play Slushii, Illenium, Chime afterward
-
-Your session → maybe you already listened to bass music today
-
-Your taste → if you love EDM, it pushes more EDM
-
-Time of day → late night = maybe slightly calmer EDM
-
-So it gives you something like:
-
-Chime
-
-Slushii
-
-Illenium
-
-Geoxor similar tracks
-
-Melodic dubstep playlist
-
-🎯 Why this happens after JUST ONE song
-
-Because Spotify has 3 backup systems:
-
-Audio analysis → even if it doesn’t know you.
-
-Global listener patterns → “most people who listen to this also like these.”
-
-Your listening taste (if logged in).
-
-So it doesn't need many songs to form a recommendation.
+1|geomsc  | 🔄 Autoplay is enabled - searching for related tracks...
+1|geomsc  | 🎵 Track is from Spotify, getting Spotify recommendations...
+1|geomsc  | ✓ Spotify token refreshed
+1|geomsc  | 🎵 Found Spotify track: Anthesis by Ximm
+1|geomsc  | ⚠️ Could not get audio features: An error occurred while communicating with Spotify's Web API.
+1|geomsc  | Details: undefined.
+1|geomsc  | 🎵 Artist genres: riddim, melodic bass, dubstep
+1|geomsc  | 🔧 Recommendations options: track=7fjYCJjqWlZO9Z6QxDrbsz, artist=7AvgHmagNZibCFgbz7zdie, market=US
+1|geomsc  | 🔍 Calling Spotify recommendations API...
+1|geomsc  | ❌ Spotify getRecommendations failed:
+1|geomsc  |    Status: 404
+1|geomsc  |    Message: [object Object]
+1|geomsc  |    Body: {}
+1|geomsc  | ⚠️ No Spotify recommendations found, falling back to YouTube...

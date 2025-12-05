@@ -776,7 +776,7 @@ export default {
             }
         } else {
             // For search terms, try multiple sources as fallback
-            const searchSources = ["ytmsearch", "ytsearch", "scsearch"];
+            const searchSources = ["ytsearch", "ytmsearch", "scsearch"];
             
             for (const source of searchSources) {
                 try {

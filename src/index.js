@@ -753,35 +753,58 @@ client.lavalink.on('queueEnd', async (player, track, payload) => {
                                 // Search for this track - try Spotify first, fallback to YouTube
                                 try {
                                     let searchResult = null;
+                                    let usedSource = 'unknown';
                                     
-                                    // Try Spotify URL/search first
+                                    // Try Spotify URL first (direct link)
                                     if (rec.spotifyUrl) {
                                         try {
+                                            console.log(`   🔍 Trying Spotify URL: ${rec.spotifyUrl}`.gray);
                                             searchResult = await player.search(
                                                 { query: rec.spotifyUrl },
                                                 lastTrack.requester
                                             );
+                                            if (searchResult?.tracks?.length > 0) {
+                                                usedSource = 'spotify-url';
+                                            }
                                         } catch (e) {
-                                            // Spotify plugin not available
+                                            console.log(`   ⚠️ Spotify URL failed: ${e.message}`.yellow);
                                         }
                                     }
                                     
-                                    // If Spotify failed or no URL, try YouTube search
+                                    // If Spotify URL failed, try Spotify search (spsearch)
+                                    if (!searchResult?.tracks?.length) {
+                                        try {
+                                            const spQuery = `${rec.artist} - ${rec.title}`;
+                                            console.log(`   🔍 Trying Spotify search: ${spQuery}`.gray);
+                                            searchResult = await player.search(
+                                                { query: `spsearch:${spQuery}` },
+                                                lastTrack.requester
+                                            );
+                                            if (searchResult?.tracks?.length > 0) {
+                                                usedSource = 'spotify-search';
+                                            }
+                                        } catch (e) {
+                                            console.log(`   ⚠️ Spotify search failed: ${e.message}`.yellow);
+                                        }
+                                    }
+                                    
+                                    // If Spotify failed, fallback to YouTube
                                     if (!searchResult?.tracks?.length) {
                                         searchResult = await player.search(
                                             { query: `${rec.artist} - ${rec.title}`, source: 'youtube' },
                                             lastTrack.requester
                                         );
+                                        usedSource = 'youtube-fallback';
                                     }
                                     
                                     if (searchResult?.tracks?.length > 0) {
                                         uniqueSpotifyTracks.push(searchResult.tracks[0]);
                                         addedTitles.add(normalizedTitle);
                                         const source = searchResult.tracks[0].info.sourceName || 'unknown';
-                                        console.log(`   ✓ ${rec.title} - ${rec.artist} [${source}]`.gray);
+                                        console.log(`   ✓ ${rec.title} - ${rec.artist} [${source}] (${usedSource})`.gray);
                                     }
                                 } catch (searchError) {
-                                    console.log(`   ⚠️ Could not find: ${rec.title}`.yellow);
+                                    console.log(`   ⚠️ Could not find: ${rec.title} - ${searchError.message}`.yellow);
                                 }
                                 
                                 if (uniqueSpotifyTracks.length >= 10) break;

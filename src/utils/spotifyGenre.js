@@ -71,22 +71,19 @@ export async function getSpotifyRecommendations(trackTitle, artistName, limit = 
             }
         }
         
-        // Build recommendations options with Spotify-style algorithm
+        // Build recommendations options - keep it simple with track + artist seeds
         const options = {
             limit: limit,
-            seed_tracks: [trackId]
+            seed_tracks: [trackId],
+            market: 'US' // Specify market to avoid 404 errors
         };
         
-        // Add artist seed if available (max 5 seeds total across tracks, artists, genres)
+        // Add artist seed if available
         if (artistId) {
             options.seed_artists = [artistId];
         }
         
-        // Add genre seed if we have room (max 5 seeds total)
-        // Only add 1 genre to leave room for track + artist seeds
-        if (artistGenres.length > 0 && (!options.seed_artists || options.seed_artists.length < 2)) {
-            options.seed_genres = [artistGenres[0]];
-        }
+        console.log(`🔧 Recommendations options: track=${trackId}, artist=${artistId || 'none'}, market=US`.gray);
         
         // Enhanced audio feature targeting (Spotify-style content-based filtering)
         if (audioFeatures) {
@@ -141,10 +138,20 @@ export async function getSpotifyRecommendations(trackTitle, artistName, limit = 
         }
         
         // Get recommendations from Spotify
-        const recommendations = await spotifyApi.getRecommendations(options);
+        console.log(`🔍 Calling Spotify recommendations API...`.gray);
+        let recommendations;
+        try {
+            recommendations = await spotifyApi.getRecommendations(options);
+        } catch (recError) {
+            console.error(`❌ Spotify getRecommendations failed:`.red);
+            console.error(`   Status: ${recError.statusCode}`.red);
+            console.error(`   Message: ${recError.message}`.red);
+            console.error(`   Body: ${JSON.stringify(recError.body)}`.red);
+            return null;
+        }
         
         if (!recommendations.body.tracks?.length) {
-            console.log(`⚠️ No Spotify recommendations found`.yellow);
+            console.log(`⚠️ No Spotify recommendations found (empty response)`.yellow);
             return null;
         }
         
