@@ -577,6 +577,12 @@ client.lavalink.on('trackStart', async (player, track, payload) => {
 });
 
 client.lavalink.on('trackEnd', async (player, track, payload) => {
+    // Ignore trackEnd events during seek operations
+    if (player.isSeeking) {
+        console.log(`[trackEnd] Ignoring - player is seeking`.yellow);
+        return;
+    }
+    
     console.log(`Track ended: ${track.info.title} (reason: ${payload.reason})`.yellow);
     
     // Clean up old now playing message reference
@@ -639,6 +645,12 @@ client.lavalink.on('trackStuck', async (player, track, payload) => {
 });
 
 client.lavalink.on('queueEnd', async (player, track, payload) => {
+    // Ignore queueEnd events during seek operations
+    if (player.isSeeking) {
+        console.log(`[queueEnd] Ignoring - player is seeking`.yellow);
+        return;
+    }
+    
     console.log(`✅ Queue finished!`.green);
     
     // Check if autoplay is enabled

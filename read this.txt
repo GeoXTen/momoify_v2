@@ -1,14 +1,9 @@
-1|geomsc  | 🔄 Autoplay is enabled - searching for related tracks...
-1|geomsc  | 🎵 Track is from Spotify, getting Spotify recommendations...
-1|geomsc  | ✓ Spotify token refreshed
-1|geomsc  | 🎵 Found Spotify track: Anthesis by Ximm
-1|geomsc  | ⚠️ Could not get audio features: An error occurred while communicating with Spotify's Web API.
-1|geomsc  | Details: undefined.
-1|geomsc  | 🎵 Artist genres: riddim, melodic bass, dubstep
-1|geomsc  | 🔧 Recommendations options: track=7fjYCJjqWlZO9Z6QxDrbsz, artist=7AvgHmagNZibCFgbz7zdie, market=US
-1|geomsc  | 🔍 Calling Spotify recommendations API...
-1|geomsc  | ❌ Spotify getRecommendations failed:
-1|geomsc  |    Status: 404
-1|geomsc  |    Message: [object Object]
-1|geomsc  |    Body: {}
-1|geomsc  | ⚠️ No Spotify recommendations found, falling back to YouTube...
+❌ Failed to Switch Server
+⚠️
+ Error: ENOENT: no such file or directory, open '/home/geo/bot/ecosystem.config.cjs'
+
+ℹ️
+ The configuration may have been partially updated.
+💡
+ You may need to restart the bot manually.
+Switch Failed•Today at 8:07 PM

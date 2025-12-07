@@ -61,22 +61,47 @@ export default {
             });
         }
         
-        // Seek operation - fast and simple
+        // Seek operation - save track info in case it gets cleared
         try {
+            const currentTrack = player.queue.current;
+            const trackInfo = {
+                encoded: currentTrack.encoded,
+                info: { ...currentTrack.info },
+                requester: currentTrack.requester
+            };
+            
             console.log(`[SEEK] Before seek:`.cyan);
-            console.log(`  Track: ${player.queue.current.info.title}`.cyan);
+            console.log(`  Track: ${trackInfo.info.title}`.cyan);
             console.log(`  Duration: ${formatTime(trackDuration)}`.cyan);
             console.log(`  Current position: ${formatTime(player.position)}`.cyan);
             console.log(`  Queue size: ${player.queue.tracks.length}`.cyan);
             console.log(`  Seeking to: ${formatTime(milliseconds)}`.cyan);
             
-            // Set seeking flag to prevent trackEnd events during seek
+            // Set seeking flag to prevent trackEnd/queueEnd events during seek
             player.isSeeking = true;
             
-            await player.seek(milliseconds);
+            // Use direct node update instead of player.seek() to avoid internal queue manipulation
+            await player.node.updatePlayer({
+                guildId: player.guildId,
+                playerOptions: {
+                    position: milliseconds
+                }
+            });
             
-            // Wait for remote Lavalink to process seek (especially important for US servers)
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Wait for Lavalink to process
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            // Check if track was cleared and restore it
+            if (!player.queue.current) {
+                console.log(`[SEEK] Track was cleared, restoring...`.yellow);
+                player.queue.current = trackInfo;
+            }
+            
+            // Ensure player state is correct
+            if (!player.playing && !player.paused) {
+                console.log(`[SEEK] Player stopped, resuming...`.yellow);
+                player.playing = true;
+            }
             
             // Clear seeking flag
             player.isSeeking = false;

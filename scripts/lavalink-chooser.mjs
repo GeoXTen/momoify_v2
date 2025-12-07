@@ -22,9 +22,16 @@
 import fs from 'fs';
 import https from 'https';
 import http from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { performance } from 'perf_hooks';
 import readline from 'readline';
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
+
+// Get project root directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, '..');
 
 // Parse --top argument
 function getTopCount() {
@@ -469,29 +476,22 @@ function updateEnvFile(server) {
 function startBot() {
   log.header('🚀 Starting Bot with PM2');
   
-  const isWindows = process.platform === 'win32';
-  const pm2Cmd = isWindows ? 'pm2.cmd' : 'pm2';
+  const scriptPath = path.join(projectRoot, 'src', 'index.js');
+  const command = `cd "${projectRoot}" && pm2 start "${scriptPath}" --name geomsc --node-args="--expose-gc" --max-memory-restart 500M --update-env`;
   
-  log.info('Starting bot with PM2...');
+  log.info(`Running: ${command}`);
   
-  const bot = spawn(pm2Cmd, ['start', 'src/index.js', '--name', 'geomsc', '--update-env'], {
-    stdio: 'inherit',
-    shell: true,
-    cwd: process.cwd()
-  });
-  
-  bot.on('exit', (code) => {
-    if (code === 0) {
-      log.success('Bot started with PM2 successfully');
+  exec(command, (error, stdout, stderr) => {
+    if (stdout) console.log(stdout);
+    if (stderr) console.error(stderr);
+    
+    if (error) {
+      log.error(`PM2 start failed: ${error.message}`);
+      process.exit(1);
     } else {
-      log.error(`PM2 start failed with code ${code}`);
+      log.success('Bot started with PM2 successfully');
+      process.exit(0);
     }
-    process.exit(code);
-  });
-  
-  bot.on('error', (error) => {
-    log.error(`Failed to start PM2: ${error.message}`);
-    process.exit(1);
   });
   
   return true;

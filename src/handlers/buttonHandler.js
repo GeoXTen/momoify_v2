@@ -78,10 +78,34 @@ export async function handleButtonInteraction(interaction, client) {
         return handleHelpButton(interaction, args[0], client);
     }
     
-    // Handle switch lavalink select menu
+    // Handle switch lavalink select menu and buttons
     if (action === 'switch' && args[0] === 'lavalink') {
         if (interaction.isStringSelectMenu()) {
             return handleSwitchLavalinkSelect(interaction, client);
+        }
+        if (interaction.isButton()) {
+            const buttonAction = args[1]; // refresh or cancel
+            if (buttonAction === 'refresh') {
+                // Re-run the command
+                const switchCommand = client.commands.get('switchlavalink');
+                if (switchCommand) {
+                    await interaction.deferUpdate();
+                    // Create a fake interaction to re-run
+                    interaction.options = { getString: () => null };
+                    return switchCommand.execute(interaction, client);
+                }
+            } else if (buttonAction === 'cancel') {
+                // Clean up and remove message
+                client.tempData?.delete(`switch_lavalink_${interaction.user.id}`);
+                return interaction.update({
+                    embeds: [{
+                        color: client.config.colors.warning,
+                        title: '❌ Cancelled',
+                        description: 'Server selection cancelled.'
+                    }],
+                    components: []
+                });
+            }
         }
     }
     
@@ -693,11 +717,17 @@ async function handleNowPlayingButton(interaction, player, action, client) {
             break;
             
         case 'seekforward':
+            const currentTrackFwd = player.queue.current;
+            const trackInfoFwd = { encoded: currentTrackFwd.encoded, info: { ...currentTrackFwd.info }, requester: currentTrackFwd.requester };
             const newPosForward = Math.min(player.position + 10000, player.queue.current.info.duration - 1000);
-            await player.seek(newPosForward);
+            player.isSeeking = true;
+            await player.node.updatePlayer({ guildId: player.guildId, playerOptions: { position: newPosForward } });
+            await new Promise(r => setTimeout(r, 300));
+            if (!player.queue.current) player.queue.current = trackInfoFwd;
+            if (!player.playing && !player.paused) player.playing = true;
+            player.isSeeking = false;
             try {
                 const { createNowPlayingEmbed, createNowPlayingButtons } = await import('../utils/nowPlayingUtils.js');
-                await new Promise(r => setTimeout(r, 200)); // Wait for position to update
                 const embed = createNowPlayingEmbed(player, client);
                 const buttons = createNowPlayingButtons(player, client);
                 await interaction.editReply({ embeds: [embed], components: buttons });
@@ -707,11 +737,17 @@ async function handleNowPlayingButton(interaction, player, action, client) {
             break;
             
         case 'seekback':
+            const currentTrackBack = player.queue.current;
+            const trackInfoBack = { encoded: currentTrackBack.encoded, info: { ...currentTrackBack.info }, requester: currentTrackBack.requester };
             const newPosBack = Math.max(player.position - 10000, 0);
-            await player.seek(newPosBack);
+            player.isSeeking = true;
+            await player.node.updatePlayer({ guildId: player.guildId, playerOptions: { position: newPosBack } });
+            await new Promise(r => setTimeout(r, 300));
+            if (!player.queue.current) player.queue.current = trackInfoBack;
+            if (!player.playing && !player.paused) player.playing = true;
+            player.isSeeking = false;
             try {
                 const { createNowPlayingEmbed, createNowPlayingButtons } = await import('../utils/nowPlayingUtils.js');
-                await new Promise(r => setTimeout(r, 200)); // Wait for position to update
                 const embed = createNowPlayingEmbed(player, client);
                 const buttons = createNowPlayingButtons(player, client);
                 await interaction.editReply({ embeds: [embed], components: buttons });
@@ -846,28 +882,28 @@ async function handleSwitchLavalinkSelect(interaction, client) {
         const selectedIndex = parseInt(interaction.values[0]);
         
         // Get the stored server data
-        const servers = client.tempData?.get(`switch_lavalink_${interaction.user.id}`);
-        if (!servers) {
+        const data = client.tempData?.get(`switch_lavalink_${interaction.user.id}`);
+        if (!data || !data.servers) {
             return await interaction.editReply({
                 embeds: [{
                     color: client.config.colors.error,
                     title: `${e.error} Session Expired`,
-                    description: `${e.warning} The server selection has expired. Please run \`-switchlavalink\` again.`,
-                    footer: { text: 'v2.2.5 | Switch Lavalink' },
+                    description: `${e.warning} The server selection has expired. Please run \`/switchlavalink\` again.`,
+                    footer: { text: 'Switch Lavalink' },
                     timestamp: new Date()
                 }],
                 components: []
             });
         }
         
-        const selectedServer = servers[selectedIndex];
+        const selectedServer = data.servers[selectedIndex];
         if (!selectedServer) {
             return await interaction.editReply({
                 embeds: [{
                     color: client.config.colors.error,
                     title: `${e.error} Invalid Selection`,
                     description: `${e.warning} The selected server is no longer available.`,
-                    footer: { text: 'v2.2.5 | Switch Lavalink' },
+                    footer: { text: 'Switch Lavalink' },
                     timestamp: new Date()
                 }],
                 components: []
@@ -884,13 +920,13 @@ async function handleSwitchLavalinkSelect(interaction, client) {
                            `${e.time} Latency: **${selectedServer.latency}ms**\n\n` +
                            `${e.gear} Updating configuration...\n` +
                            `${e.refresh} Restarting Lavalink connection...`,
-                footer: { text: 'v2.2.5 | Switch Lavalink' },
+                footer: { text: 'Switching Server...' },
                 timestamp: new Date()
             }],
             components: []
         });
         
-        // Update .env file and ecosystem.config.cjs
+        // Update .env file
         try {
             const envPath = join(process.cwd(), '.env');
             let envContent = readFileSync(envPath, 'utf-8');
@@ -902,17 +938,6 @@ async function handleSwitchLavalinkSelect(interaction, client) {
             envContent = envContent.replace(/LAVALINK_SECURE=.*/g, `LAVALINK_SECURE=${selectedServer.secure}`);
             
             writeFileSync(envPath, envContent, 'utf-8');
-            
-            // Also update ecosystem.config.cjs for PM2
-            const ecosystemPath = join(process.cwd(), 'ecosystem.config.cjs');
-            let ecosystemContent = readFileSync(ecosystemPath, 'utf-8');
-            
-            ecosystemContent = ecosystemContent.replace(/LAVALINK_HOST: ['"].*?['"]/g, `LAVALINK_HOST: '${selectedServer.host}'`);
-            ecosystemContent = ecosystemContent.replace(/LAVALINK_PORT: ['"].*?['"]/g, `LAVALINK_PORT: '${selectedServer.port}'`);
-            ecosystemContent = ecosystemContent.replace(/LAVALINK_PASSWORD: ['"].*?['"]/g, `LAVALINK_PASSWORD: '${selectedServer.password}'`);
-            ecosystemContent = ecosystemContent.replace(/LAVALINK_SECURE: ['"].*?['"]/g, `LAVALINK_SECURE: '${selectedServer.secure}'`);
-            
-            writeFileSync(ecosystemPath, ecosystemContent, 'utf-8');
             
             // Update client config
             client.config.lavalink.host = selectedServer.host;
@@ -943,7 +968,7 @@ async function handleSwitchLavalinkSelect(interaction, client) {
                                `${e.checkmark} Configuration saved to \`.env\`\n` +
                                `${e.gear} Restarting bot to apply changes...\n\n` +
                                `${e.info} The bot will reconnect in ~5 seconds.`,
-                    footer: { text: 'v2.2.5 | Restarting...' },
+                    footer: { text: 'Restarting bot...' },
                     timestamp: new Date()
                 }],
                 components: []
@@ -987,7 +1012,7 @@ async function handleSwitchLavalinkSelect(interaction, client) {
                     description: `${e.warning} **Error:** ${error.message}\n\n` +
                                `${e.info} The configuration may have been partially updated.\n` +
                                `${e.bulb} You may need to restart the bot manually.`,
-                    footer: { text: 'v2.2.5 | Switch Failed' },
+                    footer: { text: 'Switch Failed' },
                     timestamp: new Date()
                 }],
                 components: []
