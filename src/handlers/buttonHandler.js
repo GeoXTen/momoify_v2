@@ -122,6 +122,11 @@ export async function handleButtonInteraction(interaction, client) {
         }
     }
     
+    // Handle admin command buttons (handled by collectors in their respective files)
+    if (action === 'shards' || action === 'stats' || action === 'lavalink') {
+        return; // Let the collectors in admin commands handle these
+    }
+    
     // For music control buttons, check player
     const player = client.lavalink.getPlayer(interaction.guildId);
     

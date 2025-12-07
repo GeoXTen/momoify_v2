@@ -246,22 +246,40 @@ export async function generateQuote(message, options = {}) {
     }
     
     // Prepare text rendering
-    const fontSize = bold ? 50 : 42; // Slightly smaller to fit better
+    let fontSize = bold ? 50 : 42; // Starting font size
+    const minFontSize = 18; // Minimum font size for very long text
     const fontWeight = bold ? 'bold' : 'normal';
     const textPadding = 50; // Right padding
     
     // Text area starts after avatar - positioned to fit in black area
     const textStartX = flip ? textPadding : 560; // Main quote text position
     const maxTextWidth = width - textStartX - textPadding; // Available width for text (1200 - 560 - 50 = 590px)
+    const maxTextHeight = height - 200; // Leave space for author and footer
     
-    ctx.font = `${fontWeight} ${fontSize}px "DejaVu Sans", "Liberation Sans", Arial, sans-serif`;
     // Add quotation marks around the text
     const quotedContent = `"${cleanContent}"`;
-    const lines = wrapText(ctx, quotedContent, maxTextWidth);
+    
+    // Dynamic font sizing - reduce font size if text is too long
+    let lines;
+    let lineHeight;
+    let textHeight;
+    
+    while (fontSize >= minFontSize) {
+        ctx.font = `${fontWeight} ${fontSize}px "DejaVu Sans", "Liberation Sans", Arial, sans-serif`;
+        lines = wrapText(ctx, quotedContent, maxTextWidth);
+        lineHeight = fontSize * 1.3;
+        textHeight = lines.length * lineHeight;
+        
+        // Check if text fits within available height
+        if (textHeight <= maxTextHeight) {
+            break;
+        }
+        
+        // Reduce font size and try again
+        fontSize -= 2;
+    }
     
     // Calculate text positioning (centered vertically)
-    const lineHeight = fontSize * 1.3;
-    const textHeight = lines.length * lineHeight;
     const authorHeight = 55;
     const idHeight = 40;
     const totalContentHeight = textHeight + authorHeight + idHeight;
