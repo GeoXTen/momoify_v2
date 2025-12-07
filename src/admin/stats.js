@@ -1,5 +1,6 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import os from 'os';
+import { adminCommands } from '../handlers/messageHandler.js';
 
 export default {
     name: 'stats',
@@ -33,17 +34,14 @@ export default {
                 await interaction.editReply({ embeds: [newEmbed], components: [newRow] });
             } else if (action === 'lavalink') {
                 await interaction.deferUpdate();
-                // Execute lavalink command
-                const lavalinkCmd = client.adminCommands?.get('lavalink');
-                if (lavalinkCmd) {
-                    await lavalinkCmd.execute(message, [], client);
-                }
+                // Show lavalink info directly
+                const lavalinkEmbed = await buildLavalinkEmbed(client);
+                await interaction.followUp({ embeds: [lavalinkEmbed], ephemeral: false });
             } else if (action === 'servers') {
                 await interaction.deferUpdate();
-                const shardsCmd = client.adminCommands?.get('shards');
-                if (shardsCmd) {
-                    await shardsCmd.execute(message, [], client);
-                }
+                // Show servers info directly
+                const serversEmbed = buildServersEmbed(client);
+                await interaction.followUp({ embeds: [serversEmbed], ephemeral: false });
             } else if (action === 'health') {
                 await interaction.deferUpdate();
                 const healthEmbed = await buildHealthCheck(client);
@@ -209,7 +207,7 @@ function buildStatsEmbed(client, data, startTime) {
             {
                 name: `${e.gear || '⚙️'} Commands`,
                 value: `Slash: **${client.commands.size}**\n` +
-                       `Admin: **${client.adminCommands?.size || 0}**\n` +
+                       `Admin: **${adminCommands.size}**\n` +
                        `${lockedGuilds > 0 ? `${e.lock || '🔒'} Locked: **${lockedGuilds}**` : ''}`,
                 inline: true
             },
@@ -305,4 +303,81 @@ function createProgressBar(value, max, length = 10) {
     const empty = length - filled;
     const filledChar = percentage < 0.7 ? '🟩' : percentage < 0.85 ? '🟨' : '🟥';
     return filledChar.repeat(filled) + '⬜'.repeat(empty);
+}
+
+function buildServersEmbed(client) {
+    const e = client.config.emojis;
+    const guilds = [...client.guilds.cache.values()];
+    const totalMembers = guilds.reduce((sum, g) => sum + g.memberCount, 0);
+    const players = [...client.lavalink.players.values()];
+    const playingGuilds = players.filter(p => p.playing).length;
+    
+    // Sort by member count
+    const topGuilds = guilds
+        .sort((a, b) => b.memberCount - a.memberCount)
+        .slice(0, 10);
+    
+    const guildList = topGuilds.map((g, i) => {
+        const player = client.lavalink.getPlayer(g.id);
+        const playing = player?.playing ? ' 🎵' : '';
+        return `**${i + 1}.** ${g.name} - ${g.memberCount.toLocaleString()} members${playing}`;
+    }).join('\n');
+    
+    return new EmbedBuilder()
+        .setColor(client.config.colors.primary)
+        .setTitle(`${e.server || '🏠'} Server Statistics`)
+        .setDescription(
+            `**Total Servers:** ${guilds.length.toLocaleString()}\n` +
+            `**Total Members:** ${totalMembers.toLocaleString()}\n` +
+            `**Playing Music:** ${playingGuilds} servers\n\n` +
+            `**Top 10 Servers:**\n${guildList}`
+        )
+        .setFooter({ text: 'Server Statistics' })
+        .setTimestamp();
+}
+
+async function buildLavalinkEmbed(client) {
+    const e = client.config.emojis;
+    const nodes = [...client.lavalink.nodeManager.nodes.values()];
+    const players = [...client.lavalink.players.values()];
+    const activePlayers = players.filter(p => p.playing).length;
+    
+    if (nodes.length === 0) {
+        return new EmbedBuilder()
+            .setColor(client.config.colors.error)
+            .setTitle(`${e.error} No Lavalink Nodes`)
+            .setDescription('No Lavalink nodes configured!')
+            .setTimestamp();
+    }
+    
+    const nodeFields = [];
+    for (const node of nodes) {
+        const status = node.connected ? `${e.online} Connected` : `${e.dnd} Disconnected`;
+        let stats = 'N/A';
+        
+        if (node.connected && node.stats) {
+            const memPercent = node.stats.memory ? 
+                ((node.stats.memory.used / node.stats.memory.allocated) * 100).toFixed(0) : 0;
+            const cpuPercent = node.stats.cpu ? 
+                (node.stats.cpu.lavalinkLoad * 100).toFixed(1) : 0;
+            stats = `Players: ${node.stats.players || 0} | CPU: ${cpuPercent}% | RAM: ${memPercent}%`;
+        }
+        
+        nodeFields.push({
+            name: `${node.connected ? '🟢' : '🔴'} ${node.options?.identifier || node.options?.host}`,
+            value: `${status}\n${stats}`,
+            inline: false
+        });
+    }
+    
+    const connectedNodes = nodes.filter(n => n.connected).length;
+    
+    return new EmbedBuilder()
+        .setColor(connectedNodes === nodes.length ? client.config.colors.success : 
+                  connectedNodes > 0 ? client.config.colors.warning : client.config.colors.error)
+        .setTitle(`${e.melody || '🎵'} Lavalink Status`)
+        .setDescription(`**Nodes:** ${connectedNodes}/${nodes.length} online\n**Players:** ${activePlayers} active / ${players.length} total`)
+        .addFields(nodeFields.slice(0, 5))
+        .setFooter({ text: 'Lavalink Node Status' })
+        .setTimestamp();
 }

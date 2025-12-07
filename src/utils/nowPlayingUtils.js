@@ -116,7 +116,7 @@ export function createNowPlayingEmbed(player, client) {
     const footerParts = [];
     if (isLive) footerParts.push('🔴 LIVE');
     footerParts.push(`${Math.round(percentage)}% complete`);
-    footerParts.push(`Started <t:${Math.floor((Date.now() - position) / 1000)}:R>`);
+    
     
     embed.setFooter({ 
         text: footerParts.join(' • '),
