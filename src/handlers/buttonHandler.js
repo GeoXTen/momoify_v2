@@ -190,7 +190,7 @@ export async function handleButtonInteraction(interaction, client) {
 
 async function handleNowPlayingButton(interaction, player, action, client) {
     // Actions that send new messages (don't defer update for these)
-    const newMessageActions = ['queue', 'lyrics', 'skip', 'previous', 'shuffle'];
+    const newMessageActions = ['queue', 'lyrics', 'skip', 'previous', 'shuffle', 'filters', 'save'];
     
     // Actions that need deferReply instead of deferUpdate
     const replyActions = ['stop'];
@@ -665,7 +665,120 @@ async function handleNowPlayingButton(interaction, player, action, client) {
                 }
             }
             break;
+            
+        case 'volup':
+            const newVolUp = Math.min(player.volume + 10, 200);
+            await player.setVolume(newVolUp);
+            try {
+                const { createNowPlayingEmbed, createNowPlayingButtons } = await import('../utils/nowPlayingUtils.js');
+                const embed = createNowPlayingEmbed(player, client);
+                const buttons = createNowPlayingButtons(player, client);
+                await interaction.editReply({ embeds: [embed], components: buttons });
+            } catch (e) {
+                await interaction.followUp({ content: `🔊 Volume: ${newVolUp}%`, flags: 64 }).catch(() => {});
+            }
+            break;
+            
+        case 'voldown':
+            const newVolDown = Math.max(player.volume - 10, 0);
+            await player.setVolume(newVolDown);
+            try {
+                const { createNowPlayingEmbed, createNowPlayingButtons } = await import('../utils/nowPlayingUtils.js');
+                const embed = createNowPlayingEmbed(player, client);
+                const buttons = createNowPlayingButtons(player, client);
+                await interaction.editReply({ embeds: [embed], components: buttons });
+            } catch (e) {
+                await interaction.followUp({ content: `🔉 Volume: ${newVolDown}%`, flags: 64 }).catch(() => {});
+            }
+            break;
+            
+        case 'seekforward':
+            const newPosForward = Math.min(player.position + 10000, player.queue.current.info.duration - 1000);
+            await player.seek(newPosForward);
+            try {
+                const { createNowPlayingEmbed, createNowPlayingButtons } = await import('../utils/nowPlayingUtils.js');
+                await new Promise(r => setTimeout(r, 200)); // Wait for position to update
+                const embed = createNowPlayingEmbed(player, client);
+                const buttons = createNowPlayingButtons(player, client);
+                await interaction.editReply({ embeds: [embed], components: buttons });
+            } catch (e) {
+                await interaction.followUp({ content: `⏩ Skipped forward 10s`, flags: 64 }).catch(() => {});
+            }
+            break;
+            
+        case 'seekback':
+            const newPosBack = Math.max(player.position - 10000, 0);
+            await player.seek(newPosBack);
+            try {
+                const { createNowPlayingEmbed, createNowPlayingButtons } = await import('../utils/nowPlayingUtils.js');
+                await new Promise(r => setTimeout(r, 200)); // Wait for position to update
+                const embed = createNowPlayingEmbed(player, client);
+                const buttons = createNowPlayingButtons(player, client);
+                await interaction.editReply({ embeds: [embed], components: buttons });
+            } catch (e) {
+                await interaction.followUp({ content: `⏪ Skipped back 10s`, flags: 64 }).catch(() => {});
+            }
+            break;
+            
+        case 'filters':
+            try {
+                const filtersCommand = client.commands.get('filters');
+                if (filtersCommand) {
+                    if (!interaction.deferred && !interaction.replied) {
+                        await interaction.deferReply({ flags: 64 });
+                    }
+                    interaction.options = { getString: () => null };
+                    await filtersCommand.execute(interaction, client);
+                } else {
+                    await interaction.reply({ content: '❌ Filters command not available', flags: 64 });
+                }
+            } catch (error) {
+                console.error('Error showing filters:', error);
+                if (!interaction.replied) {
+                    await interaction.reply({ content: '❌ Failed to show filters', flags: 64 }).catch(() => {});
+                }
+            }
+            break;
+            
+        case 'save':
+            try {
+                if (!player.queue.current) {
+                    return interaction.reply({
+                        embeds: [{ color: client.config.colors.error, description: '❌ No song to save!' }],
+                        flags: 64
+                    });
+                }
+                const track = player.queue.current;
+                const saveEmbed = {
+                    color: client.config.colors.success,
+                    title: '💾 Track Saved!',
+                    description: `**${track.info.title}**\nby ${track.info.author}`,
+                    fields: [
+                        { name: '🔗 Link', value: `[Click to open](${track.info.uri})`, inline: true },
+                        { name: '⏱️ Duration', value: formatTimeNP(track.info.duration), inline: true }
+                    ],
+                    thumbnail: { url: track.info.artworkUrl || '' }
+                };
+                // DM the user
+                try {
+                    await interaction.user.send({ embeds: [saveEmbed] });
+                    await interaction.reply({ content: '💾 Track info sent to your DMs!', flags: 64 });
+                } catch {
+                    await interaction.reply({ embeds: [saveEmbed], flags: 64 });
+                }
+            } catch (error) {
+                await interaction.reply({ content: '❌ Failed to save track', flags: 64 }).catch(() => {});
+            }
+            break;
     }
+}
+
+function formatTimeNP(ms) {
+    const seconds = Math.floor((ms / 1000) % 60);
+    const minutes = Math.floor((ms / (1000 * 60)) % 60);
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    if (hours > 0) return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 async function handleQueueButton(interaction, player, action, currentPage, client) {
