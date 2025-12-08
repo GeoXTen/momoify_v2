@@ -12,12 +12,14 @@ export default {
     aliases: ['log', 'viewlogs', 'errorlog'],
     description: 'View and manage bot logs (Owner only)',
     ownerOnly: true,
-    usage: 'logs [server] [type] [lines]',
+    usage: 'logs [server|servers] [type] [lines]',
     examples: [
         'logs',
+        'logs servers',
         'logs error',
         'logs combined 100',
         'logs MyServer',
+        'logs 123456789012345678',
         'logs "My Server Name" error 50'
     ],
     
@@ -27,7 +29,21 @@ export default {
         // Valid log types
         const validTypes = ['error', 'combined', 'out', 'err'];
         
-        // Parse arguments - check if first arg is a log type or server name
+        // Check if user wants to see server list
+        if (args[0]?.toLowerCase() === 'servers' || args[0]?.toLowerCase() === 'list') {
+            const serverList = await getServersFromLogs(client);
+            const embed = new EmbedBuilder()
+                .setColor(client.config.colors.primary)
+                .setTitle('🏠 Servers Found in Logs')
+                .setDescription(serverList.length > 0 
+                    ? serverList.map((s, i) => `${i + 1}. **${s.name}** (\`${s.id}\`)`).join('\n')
+                    : '*No servers found in logs*')
+                .setFooter({ text: 'Use: logs <server name or ID> [type] [lines]' })
+                .setTimestamp();
+            return message.reply({ embeds: [embed] });
+        }
+        
+        // Parse arguments - check if first arg is a log type or server name/ID
         let serverFilter = null;
         let logType = 'out';
         let lines = 50;
@@ -42,7 +58,7 @@ export default {
                 logType = firstArg;
                 lines = parseInt(args[1]) || 50;
             } else {
-                // First arg is server name: logs "My Server" error 50
+                // First arg is server name or ID: logs "My Server" error 50
                 serverFilter = args[0];
                 logType = validTypes.includes(args[1]?.toLowerCase()) ? args[1].toLowerCase() : 'out';
                 lines = parseInt(args[2]) || 50;
@@ -368,4 +384,53 @@ async function buildLogStats(client) {
         .setDescription(description || 'No log files found')
         .setFooter({ text: `Logs directory: ${logsDir}` })
         .setTimestamp();
+}
+
+async function getServersFromLogs(client) {
+    const logsDir = resolve(process.cwd(), 'logs');
+    const servers = new Map();
+    
+    // Patterns to extract server info from logs
+    // Format: [DISCONNECT] ServerName (guildId) - Reason: ...
+    const disconnectPattern = /\[DISCONNECT\]\s+(.+?)\s+\((\d+)\)/g;
+    // Format: Player created in guildId or Player destroyed in guildId
+    const playerPattern = /Player (?:created|destroyed) in (\d+)/g;
+    
+    const logFiles = ['out.log', 'combined.log', 'out-0.log'];
+    
+    for (const file of logFiles) {
+        const path = join(logsDir, file);
+        if (existsSync(path)) {
+            try {
+                const content = readFileSync(path, 'utf-8');
+                
+                // Extract from [DISCONNECT] pattern
+                let match;
+                while ((match = disconnectPattern.exec(content)) !== null) {
+                    const name = match[1].trim();
+                    const id = match[2];
+                    if (!servers.has(id)) {
+                        servers.set(id, { name, id });
+                    }
+                }
+                
+                // Extract guild IDs from player events
+                while ((match = playerPattern.exec(content)) !== null) {
+                    const id = match[1];
+                    if (!servers.has(id)) {
+                        // Try to get name from client cache
+                        const guild = client.guilds.cache.get(id);
+                        servers.set(id, { 
+                            name: guild?.name || 'Unknown Server', 
+                            id 
+                        });
+                    }
+                }
+            } catch (error) {
+                // Ignore read errors
+            }
+        }
+    }
+    
+    return [...servers.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
