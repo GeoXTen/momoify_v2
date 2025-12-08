@@ -1,4 +1,5 @@
-import { SlashCommandBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { hasVoted, getVoteUrl } from '../utils/voteChecker.js';
 
 // Store autoplay settings per guild
 const autoplaySettings = new Map();
@@ -21,6 +22,42 @@ export default {
         .setDescription('Toggle autoplay - automatically add related songs when queue ends'),
     
     async execute(interaction, client) {
+        const userId = interaction.user.id;
+        const isOwner = userId === client.config.ownerId;
+        
+        // Check vote requirement (skip for owner)
+        if (!isOwner) {
+            const voted = await hasVoted(userId, client);
+            
+            if (!voted) {
+                const voteUrl = getVoteUrl(client.config.clientId);
+                const voteButton = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setLabel('Vote on Top.gg')
+                        .setURL(voteUrl)
+                        .setStyle(ButtonStyle.Link)
+                        .setEmoji('🗳️')
+                );
+                
+                return interaction.reply({
+                    embeds: [{
+                        color: client.config.colors.warning,
+                        title: '🗳️ Vote Required',
+                        description: `**Autoplay is a premium feature!**\n\n` +
+                                   `To unlock autoplay, please vote for **${client.config.botName}** on Top.gg.\n\n` +
+                                   `✨ **Benefits of voting:**\n` +
+                                   `• Unlock autoplay for 12 hours\n` +
+                                   `• Support the bot's growth\n` +
+                                   `• Help others discover us!\n\n` +
+                                   `Click the button below to vote!`,
+                        footer: { text: 'Votes reset every 12 hours' }
+                    }],
+                    components: [voteButton],
+                    flags: MessageFlags.Ephemeral
+                });
+            }
+        }
+        
         const player = client.lavalink.getPlayer(interaction.guildId);
         
         if (!player) {
