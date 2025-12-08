@@ -1,2 +1,3 @@
 pm2 restart ecosystem.config.mjs --only geomsc
 
+pm2 start ./src/index.js --name geomsc --node-args="--expose-gc --max-old-space-size=500" --max-memory-restart 500M

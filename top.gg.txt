@@ -1,7 +1,13 @@
 # ✧˖°. 𝓜𝓸𝓶𝓸𝓲𝓯𝔂 .°˖✧
 ### 🎵 Your Ultimate Free Music Companion
 
-![Banner](https://media.discordapp.net/attachments/572748784753180680/1445927100480749759/Copilot_20251204_075725-removebg-preview.png?ex=6932200c&is=6930ce8c&hm=11be69d4a3eb66dd93deae60c0932ed4ba7986f0c9213cd7f601d339f989bf9c&=&format=png&quality=lossless)
+## 🎮 Screenshots
+
+![Now Playing](https://media.discordapp.net/attachments/572748784753180680/1445924762458263651/image.png?ex=693763df&is=6936125f&hm=ea1062539cd105d73eff49a0bfb0f4a1f791b50b571e2ae72d2e14978e4966a5&=&format=png&quality=lossless)
+
+![Queue](https://media.discordapp.net/attachments/572748784753180680/1445924944411234436/image.png?ex=6937640a&is=6936128a&hm=3e8fb06fc58682dca5526b8de7cd8e238be55f80db4164103d77ea82a4f441fa&=&format=png&quality=lossless)
+
+![Quotes](https://media.discordapp.net/attachments/572748784753180680/1445925119129157652/image.png?ex=69376434&is=693612b4&hm=da9107a44dd1a7bbf31687d71e3e65bd7fa0d73829e4d0c7e0f1782e46f1625f&=&format=png&quality=lossless&width=550&height=322)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -60,16 +66,6 @@ Every feature available to everyone, always!
 - Multiple font styles
 - Light & dark themes
 - Share memorable moments
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-## 🎮 Screenshots
-
-![Now Playing](https://media.discordapp.net/attachments/572748784753180680/1445924762458263651/image.png?ex=693763df&is=6936125f&hm=ea1062539cd105d73eff49a0bfb0f4a1f791b50b571e2ae72d2e14978e4966a5&=&format=png&quality=lossless)
-
-![Queue](https://media.discordapp.net/attachments/572748784753180680/1445924944411234436/image.png?ex=6937640a&is=6936128a&hm=3e8fb06fc58682dca5526b8de7cd8e238be55f80db4164103d77ea82a4f441fa&=&format=png&quality=lossless)
-
-![Quotes](https://media.discordapp.net/attachments/572748784753180680/1445925119129157652/image.png?ex=69376434&is=693612b4&hm=da9107a44dd1a7bbf31687d71e3e65bd7fa0d73829e4d0c7e0f1782e46f1625f&=&format=png&quality=lossless&width=550&height=322)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
