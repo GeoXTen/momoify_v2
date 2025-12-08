@@ -1203,6 +1203,77 @@ async function handleHelpCategorySelect(interaction, client) {
                 )
                 .setFooter({ text: 'Use /help for main menu', iconURL: client.user.displayAvatarURL() });
             break;
+            
+        case 'admin':
+            const isOwner = interaction.user.id === client.config.ownerId;
+            if (!isOwner) {
+                return interaction.followUp({
+                    content: '❌ Only the bot owner can view admin commands!',
+                    flags: 64
+                });
+            }
+            
+            embed = new EmbedBuilder()
+                .setColor(client.config.colors.error)
+                .setTitle('🔐 Admin Commands (Owner Only)')
+                .setDescription(
+                    '**Secret commands using `-` prefix**\n' +
+                    '⚠️ These commands are invisible to regular users.\n\u200B'
+                )
+                .addFields(
+                    {
+                        name: '`-printah` - Register Slash Commands',
+                        value: 'Register or update slash commands\n' +
+                               '• `-printah` - Register globally\n' +
+                               '• `-printah guild` - Register to current server (instant)',
+                        inline: false
+                    },
+                    {
+                        name: '`-reload` - Reload Commands',
+                        value: 'Reload commands without restarting\n' +
+                               '• `-reload <command>` - Reload specific command\n' +
+                               '• `-reload all` - Reload all commands',
+                        inline: false
+                    },
+                    {
+                        name: '`-eval` - Execute JavaScript',
+                        value: 'Run JavaScript code directly\n' +
+                               '⚠️ Use with extreme caution!',
+                        inline: false
+                    },
+                    {
+                        name: '`-stats` - Bot Statistics',
+                        value: 'View detailed bot statistics\nShows memory, CPU, uptime, etc.',
+                        inline: false
+                    },
+                    {
+                        name: '`-shards` - Shard Info',
+                        value: 'View shard status and statistics',
+                        inline: false
+                    },
+                    {
+                        name: '`-lavalink` - Lavalink Status',
+                        value: 'View Lavalink node status and info',
+                        inline: false
+                    },
+                    {
+                        name: '`-logs` - View Logs',
+                        value: 'View bot logs with pagination',
+                        inline: false
+                    },
+                    {
+                        name: '`-testlavalink` - Test Lavalink',
+                        value: 'Test Lavalink server connections',
+                        inline: false
+                    },
+                    {
+                        name: '`/switchlavalink` - Switch Server',
+                        value: 'Switch to a different Lavalink server',
+                        inline: false
+                    }
+                )
+                .setFooter({ text: 'Use /help for main menu', iconURL: client.user.displayAvatarURL() });
+            break;
     }
     
     // Edit the original message with the new embed

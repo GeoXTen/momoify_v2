@@ -2,10 +2,48 @@ import { EmbedBuilder } from 'discord.js';
 
 export default {
     name: 'help',
-    description: 'Show admin commands help (Owner only)',
-    ownerOnly: true,
+    description: 'Show help commands',
+    ownerOnly: false,
     
     async execute(message, args, client) {
+        const isOwner = message.author.id === client.config.ownerId;
+        
+        // If not owner, show regular help by executing the slash command
+        if (!isOwner) {
+            const helpCommand = client.commands.get('help');
+            if (helpCommand) {
+                // Create mock interaction for slash command
+                const mockInteraction = {
+                    guild: message.guild,
+                    guildId: message.guild?.id,
+                    channel: message.channel,
+                    channelId: message.channel.id,
+                    user: message.author,
+                    member: message.member,
+                    commandName: 'help',
+                    replied: false,
+                    deferred: false,
+                    options: {
+                        getString: () => null,
+                        getInteger: () => null
+                    },
+                    async reply(options) {
+                        this.replied = true;
+                        return await message.reply(options);
+                    },
+                    async editReply(options) {
+                        return await message.reply(options);
+                    },
+                    async followUp(options) {
+                        return await message.channel.send(options);
+                    }
+                };
+                return await helpCommand.execute(mockInteraction, client);
+            }
+            return;
+        }
+        
+        // Owner sees admin commands
         const adminCommands = await import('../handlers/messageHandler.js');
         const commandList = [...adminCommands.adminCommands.values()];
         

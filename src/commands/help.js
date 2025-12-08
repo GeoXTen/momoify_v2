@@ -53,35 +53,47 @@ export default {
             .setTimestamp();
 
         // Create select menu for browsing commands by category
+        const categoryOptions = [
+            {
+                label: 'Config',
+                description: 'Bot configuration commands',
+                value: 'category_config',
+                emoji: e.gear?.match(/:(\d+)>/)?.[1] || '⚙️'
+            },
+            {
+                label: 'Music',
+                description: 'Music playback commands',
+                value: 'category_music',
+                emoji: e.melody?.match(/:(\d+)>/)?.[1] || '🎵'
+            },
+            {
+                label: 'Filters',
+                description: 'Audio filter commands',
+                value: 'category_filters',
+                emoji: e.disk?.match(/:(\d+)>/)?.[1] || '🎚️'
+            },
+            {
+                label: 'General',
+                description: 'General utility commands',
+                value: 'category_general',
+                emoji: '❓'
+            }
+        ];
+        
+        // Add admin category only for owner
+        if (isOwner) {
+            categoryOptions.push({
+                label: 'Admin',
+                description: 'Owner-only admin commands',
+                value: 'category_admin',
+                emoji: '🔐'
+            });
+        }
+        
         const selectMenu = new StringSelectMenuBuilder()
             .setCustomId('help_category_select')
             .setPlaceholder('Choose a category to explore...')
-            .addOptions([
-                {
-                    label: 'Config',
-                    description: 'Bot configuration commands',
-                    value: 'category_config',
-                    emoji: e.gear?.match(/:(\d+)>/)?.[1] || '⚙️'
-                },
-                {
-                    label: 'Music',
-                    description: 'Music playback commands',
-                    value: 'category_music',
-                    emoji: e.melody?.match(/:(\d+)>/)?.[1] || '🎵'
-                },
-                {
-                    label: 'Filters',
-                    description: 'Audio filter commands',
-                    value: 'category_filters',
-                    emoji: e.disk?.match(/:(\d+)>/)?.[1] || '🎚️'
-                },
-                {
-                    label: 'General',
-                    description: 'General utility commands',
-                    value: 'category_general',
-                    emoji: '❓'
-                }
-            ]);
+            .addOptions(categoryOptions);
 
         const row1 = new ActionRowBuilder().addComponents(selectMenu);
 
