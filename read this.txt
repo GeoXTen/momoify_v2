@@ -1,9 +1,43 @@
-❌ Failed to Switch Server
-⚠️
- Error: ENOENT: no such file or directory, open '/home/geo/bot/ecosystem.config.cjs'
-
-ℹ️
- The configuration may have been partially updated.
-💡
- You may need to restart the bot manually.
-Switch Failed•Today at 8:07 PM
+5|geomsc  | ─────────────────────────────────────
+5|geomsc  | Adding SINGLE TRACK: 🔴 [KATURI] Katuri3 Full Episodes | Katuri Official Channel | LIVE NOW!
+5|geomsc  | Track info: {
+5|geomsc  |   "identifier": "QpsO4Is3lbg",
+5|geomsc  |   "title": "🔴 [KATURI] Katuri3 Full Episodes | Katuri Official Channel | LIVE NOW!",
+5|geomsc  |   "author": "KATURI",
+5|geomsc  |   "duration": 15458000,
+5|geomsc  |   "artworkUrl": "https://i.ytimg.com/vi/QpsO4Is3lbg/maxresdefault.jpg",
+5|geomsc  |   "uri": "https://www.youtube.com/watch?v=QpsO4Is3lbg",
+5|geomsc  |   "sourceName": "youtube",
+5|geomsc  |   "isSeekable": true,
+5|geomsc  |   "isStream": false,
+5|geomsc  |   "isrc": null
+5|geomsc  | }
+5|geomsc  | Before adding track:
+5|geomsc  |   player.playing: false
+5|geomsc  |   player.paused: false
+5|geomsc  |   queue.current: none
+5|geomsc  |   queue.tracks.length: 0
+5|geomsc  |   loadType: search
+5|geomsc  |   total search results: 20
+5|geomsc  | After adding track:
+5|geomsc  |   queue.tracks.length: 1
+5|geomsc  |   isFirstTrack: true
+5|geomsc  | ─────────────────────────────────────
+5|geomsc  |
+5|geomsc  | ▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶
+5|geomsc  | TRACK STARTED
+5|geomsc  |   Title: 🔴 [KATURI] Katuri3 Full Episodes | Katuri Official Channel | LIVE NOW!
+5|geomsc  |   Source: youtube
+5|geomsc  |   Guild: 847747001537527809
+5|geomsc  |   Player connected: true
+5|geomsc  |   Previous tracks: 0
+5|geomsc  | ▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶▶
+5|geomsc  |
+5|geomsc  | ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5|geomsc  | Voice Channel Status Debug:
+5|geomsc  | Channel: Unknown
+5|geomsc  | Status text: <:play:1439784311086645309> **▸ 🔴 [KATURI] Katuri3 ... - KATURI**
+5|geomsc  | Attempting to set status via REST API...
+5|geomsc  | ✓ Voice status updated successfully!
+5|geomsc  | ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5|geomsc  | ✓ Compact "Started playing" message sent

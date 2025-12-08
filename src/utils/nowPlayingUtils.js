@@ -80,7 +80,7 @@ export function createNowPlayingEmbed(player, client) {
     const embed = new EmbedBuilder()
         .setColor(player.paused ? client.config.colors.warning : client.config.colors.primary)
         .setAuthor({ 
-            name: `${e.melody || '🎵'} Music Player`,
+            name: 'Momoify Playing',
             iconURL: client.user.displayAvatarURL()
         })
         .setTitle(truncateString(track.info.title, 60))
