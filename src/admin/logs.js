@@ -12,28 +12,41 @@ export default {
     aliases: ['log', 'viewlogs', 'errorlog'],
     description: 'View and manage bot logs (Owner only)',
     ownerOnly: true,
-    usage: 'logs [type] [lines] [search]',
+    usage: 'logs [server] [type] [lines]',
     examples: [
         'logs',
         'logs error',
         'logs combined 100',
-        'logs out 50 "connection"'
+        'logs MyServer',
+        'logs "My Server Name" error 50'
     ],
     
     async execute(message, args, client) {
         const e = client.config.emojis;
         
-        // Initial settings
-        let logType = args[0]?.toLowerCase() || 'out';
-        let lines = parseInt(args[1]) || 50;
-        let searchTerm = args.slice(2).join(' ').replace(/"/g, '') || null;
+        // Valid log types
+        const validTypes = ['error', 'combined', 'out', 'err'];
+        
+        // Parse arguments - check if first arg is a log type or server name
+        let serverFilter = null;
+        let logType = 'out';
+        let lines = 50;
         let currentPage = 0;
         const linesPerPage = 30;
         
-        // Validate log type
-        const validTypes = ['error', 'combined', 'out', 'err'];
-        if (!validTypes.includes(logType)) {
-            logType = 'out';
+        if (args.length > 0) {
+            const firstArg = args[0]?.toLowerCase();
+            
+            if (validTypes.includes(firstArg)) {
+                // First arg is log type: logs error 100
+                logType = firstArg;
+                lines = parseInt(args[1]) || 50;
+            } else {
+                // First arg is server name: logs "My Server" error 50
+                serverFilter = args[0];
+                logType = validTypes.includes(args[1]?.toLowerCase()) ? args[1].toLowerCase() : 'out';
+                lines = parseInt(args[2]) || 50;
+            }
         }
         
         // Map err to error for PM2 compatibility
@@ -44,7 +57,7 @@ export default {
         if (lines > 500) lines = 500;
         
         // Build initial embed
-        const { embed, logData } = await buildLogsEmbed(client, logType, lines, searchTerm, currentPage, linesPerPage);
+        const { embed, logData } = await buildLogsEmbed(client, logType, lines, serverFilter, currentPage, linesPerPage);
         const row1 = buildSelectMenu(logType);
         const row2 = buildButtons(currentPage, logData.totalPages, logData.totalLines);
         
@@ -57,7 +70,7 @@ export default {
         const sessionData = {
             logType,
             lines,
-            searchTerm,
+            serverFilter,
             currentPage,
             logData
         };
@@ -78,7 +91,7 @@ export default {
                 await interaction.deferUpdate();
                 const { embed: newEmbed, logData: newData } = await buildLogsEmbed(
                     client, sessionData.logType, sessionData.lines, 
-                    sessionData.searchTerm, sessionData.currentPage, linesPerPage
+                    sessionData.serverFilter, sessionData.currentPage, linesPerPage
                 );
                 sessionData.logData = newData;
                 
@@ -126,7 +139,7 @@ export default {
                 
                 const { embed: newEmbed, logData: newData } = await buildLogsEmbed(
                     client, sessionData.logType, sessionData.lines,
-                    sessionData.searchTerm, sessionData.currentPage, linesPerPage
+                    sessionData.serverFilter, sessionData.currentPage, linesPerPage
                 );
                 sessionData.logData = newData;
                 
@@ -148,7 +161,7 @@ export default {
     }
 };
 
-async function buildLogsEmbed(client, logType, maxLines, searchTerm, page, linesPerPage) {
+async function buildLogsEmbed(client, logType, maxLines, serverFilter, page, linesPerPage) {
     const e = client.config.emojis;
     const logsDir = resolve(process.cwd(), 'logs');
     
@@ -186,9 +199,9 @@ async function buildLogsEmbed(client, logType, maxLines, searchTerm, page, lines
     const content = readFileSync(logPath, 'utf-8');
     let logLines = content.split('\n').filter(line => line.trim().length > 0);
     
-    // Apply search filter
-    if (searchTerm) {
-        logLines = logLines.filter(line => line.toLowerCase().includes(searchTerm.toLowerCase()));
+    // Apply server name filter
+    if (serverFilter) {
+        logLines = logLines.filter(line => line.toLowerCase().includes(serverFilter.toLowerCase()));
     }
     
     // Get file stats
@@ -240,8 +253,8 @@ async function buildLogsEmbed(client, logType, maxLines, searchTerm, page, lines
         { name: '💾 File Size', value: `\`${fileSizeKB} KB\``, inline: true }
     ];
     
-    if (searchTerm) {
-        fields.push({ name: '🔍 Filter', value: `\`${searchTerm}\``, inline: true });
+    if (serverFilter) {
+        fields.push({ name: '🏠 Server', value: `\`${serverFilter}\``, inline: true });
     }
     
     embed.addFields(fields);

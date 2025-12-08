@@ -85,6 +85,27 @@ const client = new Client({
 client.commands = new Collection();
 client.config = config;
 
+// Helper function to notify owner via DM about critical issues
+async function notifyOwner(title, description, color = 0xFF0000) {
+    try {
+        const owner = await client.users.fetch(config.ownerId);
+        if (owner) {
+            await owner.send({
+                embeds: [{
+                    color: color,
+                    title: `⚠️ ${title}`,
+                    description: description,
+                    timestamp: new Date().toISOString(),
+                    footer: { text: 'Bot Issue Notification' }
+                }]
+            });
+            console.log(`[DM] Notified owner: ${title}`.magenta);
+        }
+    } catch (error) {
+        console.error(`Failed to notify owner: ${error.message}`.red);
+    }
+}
+
 client.lavalink = new LavalinkManager({
     nodes: [
         {
@@ -403,7 +424,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
                         console.error('Error sending timeout message:', error);
                     }
                     
-                    currentPlayer.destroy();
+                    currentPlayer.destroy("Alone in voice channel for 30 minutes");
                     aloneTimers.delete(newState.guild.id);
                 }
             }
@@ -433,16 +454,30 @@ client.lavalink.on('nodeConnect', (node) => {
     console.log(`  Secure: ${node.options.secure ? 'Yes' : 'No'}`.green);
 });
 
-client.lavalink.on('nodeDisconnect', (node, reason) => {
+client.lavalink.on('nodeDisconnect', async (node, reason) => {
     console.error(`✗ Lavalink node disconnected: ${node.id}`.red.bold);
     console.error(`  Reason: ${reason}`.red);
     console.error(`  Will attempt to reconnect...`.yellow);
+    
+    // Notify owner about node disconnect
+    await notifyOwner(
+        'Lavalink Node Disconnected',
+        `**Node:** ${node.id}\n**Host:** ${node.options.host}:${node.options.port}\n**Reason:** ${reason}\n\nBot will attempt to reconnect automatically.`,
+        0xFF0000
+    );
 });
 
-client.lavalink.on('nodeError', (node, error) => {
+client.lavalink.on('nodeError', async (node, error) => {
     console.error(`✗ Lavalink node error: ${node.id}`.red.bold);
     console.error(`  Error: ${error.message}`.red);
     console.error(`  Stack:`, error.stack);
+    
+    // Notify owner about node error
+    await notifyOwner(
+        'Lavalink Node Error',
+        `**Node:** ${node.id}\n**Host:** ${node.options.host}:${node.options.port}\n**Error:** ${error.message}`,
+        0xFF0000
+    );
 });
 
 client.lavalink.on('nodeReconnect', (node) => {
@@ -454,7 +489,35 @@ client.lavalink.on('playerCreate', (player) => {
 });
 
 client.lavalink.on('playerDestroy', async (player, reason) => {
-    console.log(`Player destroyed in ${player.guildId} - Reason: ${reason}`.yellow);
+    const guild = client.guilds.cache.get(player.guildId);
+    const guildName = guild?.name || 'Unknown Server';
+    const disconnectReason = reason || 'No reason provided';
+    console.log(`[DISCONNECT] ${guildName} (${player.guildId}) - Reason: ${disconnectReason}`.yellow);
+    
+    // Expected user-initiated reasons
+    const expectedReasons = [
+        'User used /stop command',
+        'User used /leave command',
+        'User used /disconnect command',
+        'User clicked stop button',
+        'Alone in voice channel for 30 minutes',
+        'Queue ended - no autoplay',
+        'Lavalink server switch'
+    ];
+    
+    // Check if this was an unexpected disconnect
+    const isExpected = expectedReasons.some(r => disconnectReason.includes(r));
+    const has247 = is247Enabled(player.guildId);
+    
+    // Notify owner if unexpected disconnect OR if 24/7 was enabled
+    if (!isExpected || has247) {
+        const notifyTitle = has247 ? 'Bot Left (24/7 Mode Active!)' : 'Unexpected Bot Disconnect';
+        await notifyOwner(
+            notifyTitle,
+            `**Server:** ${guildName}\n**Guild ID:** ${player.guildId}\n**Reason:** ${disconnectReason}\n**24/7 Mode:** ${has247 ? 'Enabled ⚠️' : 'Disabled'}`,
+            has247 ? 0xFF0000 : 0xFFA500
+        );
+    }
     
     // Clean up player data to prevent memory leaks
     player.nowPlayingMessage = null;
@@ -595,13 +658,24 @@ client.lavalink.on('trackEnd', async (player, track, payload) => {
 });
 
 client.lavalink.on('trackError', async (player, track, payload) => {
+    const guild = client.guilds.cache.get(player.guildId);
+    const guildName = guild?.name || 'Unknown Server';
+    const errorMsg = payload.exception?.message || 'Unknown error';
+    
     console.error(`\n${'✗'.repeat(60)}`.red);
     console.error(`TRACK ERROR`.red.bold);
     console.error(`  Track: ${track.info.title}`.red);
     console.error(`  Source: ${track.info.sourceName}`.red);
-    console.error(`  Error: ${payload.exception?.message || 'Unknown error'}`.red);
+    console.error(`  Error: ${errorMsg}`.red);
     console.error(`  Severity: ${payload.exception?.severity || 'unknown'}`.red);
     console.error(`${'✗'.repeat(60)}\n`.red);
+    
+    // Notify owner about track error
+    await notifyOwner(
+        'Track Playback Error',
+        `**Server:** ${guildName}\n**Track:** ${track.info.title}\n**Source:** ${track.info.sourceName}\n**Error:** ${errorMsg}`,
+        0xFFA500
+    );
     
     // Auto-skip errored tracks to prevent stuck player
     try {
@@ -623,7 +697,17 @@ client.lavalink.on('trackError', async (player, track, payload) => {
 });
 
 client.lavalink.on('trackStuck', async (player, track, payload) => {
+    const guild = client.guilds.cache.get(player.guildId);
+    const guildName = guild?.name || 'Unknown Server';
+    
     console.error(`Track stuck: ${track.info.title} - ${payload.thresholdMs}ms`.red);
+    
+    // Notify owner about stuck track
+    await notifyOwner(
+        'Track Stuck',
+        `**Server:** ${guildName}\n**Track:** ${track.info.title}\n**Stuck for:** ${payload.thresholdMs}ms\n\nBot will attempt to skip automatically.`,
+        0xFFA500
+    );
     
     // Auto-skip stuck tracks
     try {

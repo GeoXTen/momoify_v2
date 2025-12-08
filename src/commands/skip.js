@@ -112,7 +112,7 @@ export default {
                 });
             } else {
                 // If autoplay is OFF, destroy the player
-                await player.destroy();
+                await player.destroy("Queue ended - no autoplay");
                 return interaction.editReply({
                     embeds: [{
                         color: client.config.colors.success,

@@ -5,7 +5,7 @@ export default {
             name: 'geomsc',
             script: './src/index.js',
             // Enable garbage collection for 24/7 memory management
-            node_args: '--expose-gc',
+            node_args: '--expose-gc --max-old-space-size=500',
             instances: 1,
             watch: false,
             max_memory_restart: '500M',

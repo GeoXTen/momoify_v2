@@ -33,7 +33,7 @@ export default {
             // Ignore error
         }
         
-        await player.destroy();
+        await player.destroy("User used /stop command");
         
         await interaction.editReply({
             embeds: [createSuccessEmbed(

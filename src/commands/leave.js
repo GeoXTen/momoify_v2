@@ -50,7 +50,7 @@ export default {
             // Ignore error
         }
         
-        await player.destroy();
+        await player.destroy("User used /leave command");
         
         await interaction.editReply({
             embeds: [{

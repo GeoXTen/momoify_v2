@@ -507,7 +507,7 @@ async function handleNowPlayingButton(interaction, player, action, client) {
                 // Voice channel status not supported or error occurred
             }
             
-            await player.destroy();
+            await player.destroy("User clicked stop button");
             
             // Show different message if conversion was also stopped
             const stopMessage = isConverting 
@@ -949,7 +949,7 @@ async function handleSwitchLavalinkSelect(interaction, client) {
             const players = [...client.lavalink.players.values()];
             for (const player of players) {
                 try {
-                    player.destroy();
+                    player.destroy("Lavalink server switch");
                 } catch (err) {
                     console.error('Error destroying player:', err);
                 }
